@@ -5,15 +5,15 @@ Vagrant.configure("2") do |config|
     config.vm.box = "bento/ubuntu-16.04"
 
     config.vm.define "zoo1" do |zoo1|
-        config.vm.network "private_network", ip: vagrantConfig['ip1'], auto_config: false
+        config.vm.network "private_network", ip: vagrantConfig['ip1']
     end
 
     config.vm.define "zoo2" do |zoo2|
-        config.vm.network "private_network", ip: vagrantConfig['ip2'], auto_config: false
+        config.vm.network "private_network", ip: vagrantConfig['ip2']
     end
 
     config.vm.define "zoo3" do |zoo3|
-        config.vm.network "private_network", ip: vagrantConfig['ip3'], auto_config: false
+        config.vm.network "private_network", ip: vagrantConfig['ip3']
     end
 
     config.vm.synced_folder "src/", "/home/vagrant/src", owner:"vagrant", group: "vagrant"
@@ -35,9 +35,22 @@ Vagrant.configure("2") do |config|
 
     config.vm.provision "shell", inline: "yes | cp -rf /home/vagrant/devops/hosts /etc/hosts"
 
+    config.vm.provision "shell", inline: "sudo apt-get install zookeeper -y"
     config.vm.provision "shell", inline: "sudo apt-get install zookeeperd -y"
 
-    config.vm.provision "shell", inline: "sudo /home/vagrant/devops/zk.cfg >> /var/zookeeper/zoo.cfg"
+    config.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/zk.cfg >> /etc/zookeeper/conf/zoo.cfg"
+
+    config.vm.define "zoo1" do |zoo1|
+        config.vm.provision "shell", inline: "echo 1 > /etc/zookeeper/conf/myid"
+    end
+
+    config.vm.define "zoo2" do |zoo2|
+        config.vm.provision "shell", inline: "echo 2 > /etc/zookeeper/conf/myid"
+    end
+
+    config.vm.define "zoo3" do |zoo3|
+        config.vm.provision "shell", inline: "echo 3 > /etc/zookeeper/conf/myid"
+    end
 
     config.vm.provision "shell", inline: "sudo service zookeeper restart"
 

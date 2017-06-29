@@ -2,6 +2,8 @@
 target/
 *.iml
 
+.vagrant/
+
 # Compiled class file
 *.class
 
