@@ -33,7 +33,7 @@ Vagrant.configure("2") do |config|
     config.vm.provision "shell", inline: "echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 select true' | sudo debconf-set-selections"
     config.vm.provision "shell", inline: "sudo apt-get install oracle-java8-installer -y"
 
-    config.vm.provision "shell", inline: "yes | cp -rf /home/vagrant/devops/hosts /etc/hosts"
+    config.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/hosts >> /etc/hosts"
 
     config.vm.provision "shell", inline: "sudo apt-get install zookeeper -y"
     config.vm.provision "shell", inline: "sudo apt-get install zookeeperd -y"
