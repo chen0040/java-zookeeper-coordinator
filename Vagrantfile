@@ -36,26 +36,35 @@ Vagrant.configure("2") do |config|
     config.vm.provision "shell", inline: "echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 select true' | sudo debconf-set-selections"
     config.vm.provision "shell", inline: "sudo apt-get install oracle-java8-installer -y"
 
-    config.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/hosts >> /etc/hosts"
+
 
     config.vm.provision "shell", inline: "sudo apt-get install zookeeper -y"
     config.vm.provision "shell", inline: "sudo apt-get install zookeeperd -y"
 
-    config.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/zk.cfg >> /etc/zookeeper/conf/zoo.cfg"
+
 
     config.vm.define "zoo1" do |zoo1|
+        zoo1.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/hosts.1 >> /etc/hosts"
         zoo1.vm.provision "shell", inline: "echo 1 > /etc/zookeeper/conf/myid"
+        zoo1.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/zk1.cfg >> /etc/zookeeper/conf/zoo.cfg"
+        zoo1.vm.provision "shell", inline: "sudo service zookeeper restart"
     end
 
     config.vm.define "zoo2" do |zoo2|
+        zoo2.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/hosts.2 >> /etc/hosts"
         zoo2.vm.provision "shell", inline: "echo 2 > /etc/zookeeper/conf/myid"
+        zoo2.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/zk2.cfg >> /etc/zookeeper/conf/zoo.cfg"
+        zoo2.vm.provision "shell", inline: "sudo service zookeeper restart"
     end
 
     config.vm.define "zoo3" do |zoo3|
+        zoo3.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/hosts.3 >> /etc/hosts"
         zoo3.vm.provision "shell", inline: "echo 3 > /etc/zookeeper/conf/myid"
+        zoo3.vm.provision "shell", inline: "sudo cat /home/vagrant/devops/zk3.cfg >> /etc/zookeeper/conf/zoo.cfg"
+        zoo3.vm.provision "shell", inline: "sudo service zookeeper restart"
     end
 
-    config.vm.provision "shell", inline: "sudo service zookeeper restart"
+
 
 
 end
