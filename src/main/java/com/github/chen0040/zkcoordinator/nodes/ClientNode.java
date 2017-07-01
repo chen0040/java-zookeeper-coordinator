@@ -1,5 +1,6 @@
 package com.github.chen0040.zkcoordinator.nodes;
 
+
 import com.github.chen0040.zkcoordinator.models.NodeUri;
 import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
 import com.github.chen0040.zkcoordinator.models.ZkConfig;
@@ -21,16 +22,15 @@ import java.util.function.BiConsumer;
 
 
 /**
- * Created by xschen on 12/4/15.
+ * Created by xschen on 1/7/2017.
  */
-public class WorkerNode implements Watcher, AutoCloseable, SystemActor, ZookeeperActor {
-
+public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
    private static final Logger logger = LoggerFactory.getLogger(WorkerNode.class);
 
    @Getter
    private final String ipAddress;
 
-   private RegistrationService registrationService;
+   private ZkConnector connector;
    private LeaderWatchService leaderWatchService;
    private MasterClusterService masterClusterService;
    private TaskAssignmentService taskAssignmentService;
@@ -57,13 +57,13 @@ public class WorkerNode implements Watcher, AutoCloseable, SystemActor, Zookeepe
    private final ZkConfig zkConfig;
 
    @Setter
-   private boolean trackingLeader = false;
+   private boolean trackingLeader = true;
    @Setter
-   private boolean trackingMasters = false;
+   private boolean trackingMasters = true;
    @Setter
    private boolean capableOfTaskAssignment = false;
 
-   public WorkerNode(ZkConfig config) {
+   public ClientNode(ZkConfig config) {
       this.zkConfig = config;
       this.zkConnect = zkConfig.getZkConnect();
       this.initialPort = zkConfig.getInitialPort();
@@ -76,35 +76,30 @@ public class WorkerNode implements Watcher, AutoCloseable, SystemActor, Zookeepe
       logger.info("this instance (id = {}) is connected to zookeeper", workerId);
    }
 
-   protected void onGroupJoined(ZooKeeper zk, RegistrationCompleted rc) {
-
-      int port = rc.getPort();
-      if(!running) {
-         String serverId = rc.getServerId();
-         registeredPort = port;
-
-         logger.info("join group: {}:{}", ipAddress, port);
-
-         workerId = ipAddress + "-" + port;
-         MDC.put("nodeid", workerId); // this is defined for the ${nodeid} in the logback.xml
-
-         startSystem(ipAddress, port, workerId);
-
-         running =true;
-
-      } else if(port != registeredPort){
-         logger.error("Fatal error: port on re-registration differs from the original registered port!");
-         System.exit(0);
+   public void connect(long timeout) throws IOException {
+      start();
+      try {
+         Thread.sleep(timeout);
       }
+      catch (InterruptedException e) {
+         e.printStackTrace();
+      }
+   }
 
+   public void connect() throws IOException {
+      connect(2000);
+   }
+
+   public void disconnect() throws InterruptedException {
+      shutdown();
    }
 
    @Override
    public void start() throws IOException {
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, ipAddress);
+      connector = new ZkConnector(zkConfig.getZkConnect(), zkConfig.getReconnectDelayWhenSessionExpired());
 
-      registrationService.onZkStarted(zk -> {
+      connector.onZkStarted(zk -> {
          logger.info("Zookeeper connected!");
 
          taskAssignmentService = createTaskAssignmentService(zk);
@@ -120,27 +115,13 @@ public class WorkerNode implements Watcher, AutoCloseable, SystemActor, Zookeepe
          }
       });
 
-      registrationService.addGroupJoinListener(this::onGroupJoined);
-
-      registrationService.onZkReconnected(this::onZkReconnected);
-
-      registrationService.start(zkConfig.getSessionTimeout(), initialPort);
+      connector.start(zkConfig.getSessionTimeout());
    }
 
    @Override
    public void shutdown() throws InterruptedException {
-      registrationService.stopZk();
-      stopSystem();
+      connector.stopZk();
       running = false;
-   }
-
-   @Override public void startSystem(String ipAddress, int port, String masterId){
-      logger.info("start system at {}:{} with id = {}", ipAddress, port, masterId);
-   }
-
-   @Override
-   public void stopSystem() {
-      logger.info("system shutdown");
    }
 
 
@@ -150,7 +131,7 @@ public class WorkerNode implements Watcher, AutoCloseable, SystemActor, Zookeepe
 
 
    @Override public void close() throws Exception {
-
+      disconnect();
    }
 
    protected TaskAssignmentService createTaskAssignmentService(ZooKeeper zk) {

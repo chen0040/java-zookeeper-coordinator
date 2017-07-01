@@ -27,8 +27,9 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
    private static final Logger logger = LoggerFactory.getLogger(RequestNode.class);
 
    private RegistrationService registrationService;
-   private LeaderWatchService leaderWatchService;
    private TaskAssignmentService taskAssignmentService;
+
+   private LeaderWatchService leaderWatchService;
    private MasterClusterService masterClusterService;
 
    @Getter
@@ -103,9 +104,9 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
       registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, ipAddress);
 
       registrationService.onZkStarted(zk -> {
-         leaderWatchService = createLeaderWatchService(zk);
          taskAssignmentService = createTaskAssignmentService(zk);
 
+         leaderWatchService = createLeaderWatchService(zk);
          masterClusterService = createMasterClusterService(zk);
 
          leaderWatchService.watchLeader();
