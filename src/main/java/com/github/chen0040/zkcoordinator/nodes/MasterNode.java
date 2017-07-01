@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 
-public class MasterNode implements Watcher, Master {
+public class MasterNode implements Watcher, MasterActor, ZookeeperActor {
 
    private static final Logger logger = LoggerFactory.getLogger(MasterNode.class);
 
@@ -55,7 +55,7 @@ public class MasterNode implements Watcher, Master {
    private final ZkConfig zkConfig = new ZkConfig();
 
 
-   public MasterNode(String zkConnect, String groupName, int initialPort) {
+   public MasterNode(String zkConnect, int initialPort, String groupName) {
       this.zkConnect = zkConnect;
       this.groupName = groupName;
       this.ipAddress = IpTools.getIpAddress();
@@ -119,6 +119,7 @@ public class MasterNode implements Watcher, Master {
       }
    }
 
+   @Override
    public void start() throws IOException {
       registrationService = createRegistrationService();
 
@@ -129,6 +130,13 @@ public class MasterNode implements Watcher, Master {
       registrationService.addGroupJoinListener(this::onZkGroupJoined);
 
       registrationService.start(zkConfig.getSessionTimeout(), initialPort);
+   }
+
+   @Override
+   public void shutdown() throws InterruptedException {
+      registrationService.stopZk();
+      running = false;
+      stopSystem();
    }
 
    protected RegistrationService createRegistrationService(){
@@ -170,14 +178,6 @@ public class MasterNode implements Watcher, Master {
    @Override public void stopSystem() {
       logger.info("system shutdown");
    }
-
-   public void shutdown() throws InterruptedException {
-      registrationService.stopZk();
-      running = false;
-      stopSystem();
-   }
-
-
 
    @Override public void process(WatchedEvent watchedEvent) {
 

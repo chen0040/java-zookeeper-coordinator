@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * Created by xschen on 12/4/15.
  */
-public class WorkerNode implements Watcher, AutoCloseable, Node {
+public class WorkerNode implements Watcher, AutoCloseable, SystemActor, ZookeeperActor {
 
    private static final Logger logger = LoggerFactory.getLogger(WorkerNode.class);
 
@@ -49,7 +49,7 @@ public class WorkerNode implements Watcher, AutoCloseable, Node {
    @Getter
    private final ZkConfig zkConfig = new ZkConfig();
 
-   public WorkerNode(String zkConnect, String groupName, int initialPort) {
+   public WorkerNode(String zkConnect, int initialPort, String groupName) {
       this.zkConnect = zkConnect;
       this.initialPort = initialPort;
       this.groupName = groupName;
@@ -84,6 +84,7 @@ public class WorkerNode implements Watcher, AutoCloseable, Node {
 
    }
 
+   @Override
    public void start() throws IOException {
 
       registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, ipAddress);
@@ -99,10 +100,11 @@ public class WorkerNode implements Watcher, AutoCloseable, Node {
       registrationService.start(zkConfig.getSessionTimeout(), initialPort);
    }
 
+   @Override
    public void shutdown() throws InterruptedException {
       registrationService.stopZk();
-      running = false;
       stopSystem();
+      running = false;
    }
 
    @Override public void startSystem(String ipAddress, int port, String masterId){
@@ -113,6 +115,7 @@ public class WorkerNode implements Watcher, AutoCloseable, Node {
    public void stopSystem() {
       logger.info("system shutdown");
    }
+
 
    @Override public void process(WatchedEvent watchedEvent) {
 

@@ -4,7 +4,7 @@ package com.github.chen0040.zkcoordinator.nodes;
 /**
  * Created by xschen on 1/7/2017.
  */
-public interface Node {
+public interface SystemActor {
    // System usually stops when the master is shutdown
    void stopSystem();
 
