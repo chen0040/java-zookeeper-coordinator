@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.nodes;
 
-import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
-import com.github.chen0040.zkcoordinator.model.ZkConfig;
+import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
+import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.services.RegistrationService;
 import com.github.chen0040.zkcoordinator.services.RegistrationServiceImpl;
 import com.github.chen0040.zkcoordinator.utils.IpTools;

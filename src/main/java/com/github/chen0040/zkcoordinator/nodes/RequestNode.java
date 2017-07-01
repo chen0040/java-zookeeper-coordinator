@@ -1,9 +1,9 @@
 package com.github.chen0040.zkcoordinator.nodes;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
-import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
-import com.github.chen0040.zkcoordinator.model.ZkConfig;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
+import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.services.*;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import lombok.Getter;
@@ -152,7 +152,7 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
    }
 
 
-   public AkkaNodeUri getLeaderUri() {
+   public NodeUri getLeaderUri() {
       return leaderWatchService.getLeaderUri();
    }
 
@@ -167,7 +167,7 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
    }
 
 
-   public List<AkkaNodeUri> getMasters() {
+   public List<NodeUri> getMasters() {
       return masterClusterService.masters();
    }
 }

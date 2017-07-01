@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.utils;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
 
 import java.io.Serializable;
 
@@ -12,13 +12,13 @@ import java.io.Serializable;
 public class ZkUtils implements Serializable {
    private static final long serialVersionUID = 8753707255122523807L;
 
-   public static AkkaNodeUri toAkkaNodeUri(String leaderInfo, String actorSystemName){
+   public static NodeUri toAkkaNodeUri(String leaderInfo, String actorSystemName){
 
       String[] leaderInfoParts = leaderInfo.split("_");
       String leaderIp = leaderInfoParts[0];
       String leaderPortString = leaderInfoParts[1];
       int leaderPort = Integer.parseInt(leaderPortString);
-      AkkaNodeUri masterConfig = new AkkaNodeUri();
+      NodeUri masterConfig = new NodeUri();
       masterConfig.setHost(leaderIp);
       masterConfig.setMessage(leaderInfo);
       masterConfig.setSystem(actorSystemName);

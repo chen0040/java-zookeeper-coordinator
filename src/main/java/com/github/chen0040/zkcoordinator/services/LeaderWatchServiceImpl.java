@@ -1,8 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
-import com.github.chen0040.zkcoordinator.model.ZkConfig;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
@@ -14,7 +14,7 @@ import org.apache.zookeeper.ZooKeeper;
  * Created by xschen on 5/11/16.
  */
 public class LeaderWatchServiceImpl implements LeaderWatchService {
-   private AkkaNodeUri masterConfig;
+   private NodeUri masterConfig;
    private ZooKeeper zk;
 
    private String masterSystemName;
@@ -92,7 +92,7 @@ public class LeaderWatchServiceImpl implements LeaderWatchService {
    }
 
 
-   public AkkaNodeUri getLeaderUri() {
+   public NodeUri getLeaderUri() {
       return masterConfig;
    }
 

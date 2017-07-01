@@ -1,4 +1,4 @@
-package com.github.chen0040.zkcoordinator.model;
+package com.github.chen0040.zkcoordinator.models;
 
 
 import java.io.Serializable;
@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * Created by xschen on 30/6/2017.
  */
-public class AkkaNodeUri implements Serializable {
+public class NodeUri implements Serializable {
 
    private static final long serialVersionUID = -6536075494230297013L;
    private String host;
@@ -17,7 +17,7 @@ public class AkkaNodeUri implements Serializable {
    private String message;
 
 
-   public AkkaNodeUri() {
+   public NodeUri() {
       host = "localhost";
       protocol = "akka.tcp";
       system = "";
@@ -80,8 +80,8 @@ public class AkkaNodeUri implements Serializable {
 
 
    @Override public boolean equals(Object obj) {
-      if (obj instanceof AkkaNodeUri) {
-         AkkaNodeUri rhs = (AkkaNodeUri) obj;
+      if (obj instanceof NodeUri) {
+         NodeUri rhs = (NodeUri) obj;
          if (!rhs.host.equals(host)) {
             return false;
          }

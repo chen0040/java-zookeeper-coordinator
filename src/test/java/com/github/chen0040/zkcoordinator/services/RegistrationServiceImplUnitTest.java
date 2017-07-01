@@ -1,9 +1,9 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.ZkConfig;
+import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
-import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
+import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

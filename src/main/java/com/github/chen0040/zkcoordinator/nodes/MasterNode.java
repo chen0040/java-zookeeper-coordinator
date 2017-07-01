@@ -1,8 +1,8 @@
 package com.github.chen0040.zkcoordinator.nodes;
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
-import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
-import com.github.chen0040.zkcoordinator.model.ZkConfig;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
+import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.services.*;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import lombok.Getter;
@@ -188,12 +188,12 @@ public class MasterNode implements Watcher, MasterActor, ZookeeperActor {
    }
 
 
-   public void getWorkerAssigned2Task(String taskId, Consumer<AkkaNodeUri> callback) {
+   public void getWorkerAssigned2Task(String taskId, Consumer<NodeUri> callback) {
       taskAssignmentService.getWorkerAssigned2Task(taskId, callback);
    }
 
 
-   public void assignTask(String taskId, BiConsumer<String, AkkaNodeUri> callback) {
+   public void assignTask(String taskId, BiConsumer<String, NodeUri> callback) {
       taskAssignmentService.assignTask(taskId, callback);
    }
 

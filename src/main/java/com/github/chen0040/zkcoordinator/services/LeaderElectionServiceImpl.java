@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.UTF8;
+import com.github.chen0040.zkcoordinator.consts.UTF8;
 import com.github.chen0040.zkcoordinator.enums.MasterStates;
 import org.apache.zookeeper.*;
 import org.slf4j.Logger;

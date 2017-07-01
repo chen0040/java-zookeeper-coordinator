@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -15,9 +15,9 @@ public interface MasterClusterService {
 
    boolean masterExists(String masterId);
 
-   void addMasterChangeListener(Consumer<List<AkkaNodeUri>> listener);
+   void addMasterChangeListener(Consumer<List<NodeUri>> listener);
 
-   List<AkkaNodeUri> masters();
+   List<NodeUri> masters();
 
-   void addMasterAddedListener(Consumer<List<AkkaNodeUri>> listener);
+   void addMasterAddedListener(Consumer<List<NodeUri>> listener);
 }

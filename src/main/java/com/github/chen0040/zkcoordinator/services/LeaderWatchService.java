@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
 
 
 /**
@@ -10,7 +10,7 @@ import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
 public interface LeaderWatchService {
    boolean leaderExists();
 
-   AkkaNodeUri getLeaderUri();
+   NodeUri getLeaderUri();
 
    void watchLeader();
 }

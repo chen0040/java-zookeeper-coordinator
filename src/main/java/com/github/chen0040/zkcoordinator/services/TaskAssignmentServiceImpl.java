@@ -3,7 +3,9 @@ package com.github.chen0040.zkcoordinator.services;
 
 import com.github.chen0040.data.utils.TupleTwo;
 import com.github.chen0040.zkcoordinator.consts.TaskStates;
-import com.github.chen0040.zkcoordinator.model.*;
+import com.github.chen0040.zkcoordinator.consts.UTF8;
+import com.github.chen0040.zkcoordinator.models.*;
+import com.github.chen0040.zkcoordinator.utils.TupleThree;
 import org.apache.zookeeper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +94,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
       }
    };
    AsyncCallback.DataCallback getWorkerAssigned2TaskCallback = (rc, path, context, data, stat) -> {
-      Consumer<AkkaNodeUri> callback = (Consumer<AkkaNodeUri>) context;
+      Consumer<NodeUri> callback = (Consumer<NodeUri>) context;
       String taskId = path.substring(path.lastIndexOf("/") + 1);
       switch (KeeperException.Code.get(rc)) {
          case CONNECTIONLOSS:
@@ -100,7 +102,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
             break;
          case OK:
             String workerId = new String(data);
-            AkkaNodeUri worker = getUri(workerId);
+            NodeUri worker = getUri(workerId);
             callback.accept(worker);
             break;
       }
@@ -157,10 +159,10 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
    };
    private AsyncCallback.StringCallback createAssignmentCallback = (rc, path, context, name) -> {
-      TupleThree<String, String, BiConsumer<String, AkkaNodeUri>> tuple3 = (TupleThree<String, String, BiConsumer<String, AkkaNodeUri>>) context;
+      TupleThree<String, String, BiConsumer<String, NodeUri>> tuple3 = (TupleThree<String, String, BiConsumer<String, NodeUri>>) context;
       String taskId = tuple3._1();
       String workerId = tuple3._2();
-      BiConsumer<String, AkkaNodeUri> callback = tuple3._3();
+      BiConsumer<String, NodeUri> callback = tuple3._3();
 
       switch (KeeperException.Code.get(rc)) {
          case CONNECTIONLOSS:
@@ -194,10 +196,10 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    };
    private AsyncCallback.StatCallback updateTaskHandlerCallback = (rc, path, context, stat) -> {
 
-      TupleTwo<String, BiConsumer<String, AkkaNodeUri>> tuple2 = (TupleTwo<String, BiConsumer<String, AkkaNodeUri>>) context;
+      TupleTwo<String, BiConsumer<String, NodeUri>> tuple2 = (TupleTwo<String, BiConsumer<String, NodeUri>>) context;
 
       String workerId = tuple2._1();
-      BiConsumer<String, AkkaNodeUri> callback = tuple2._2();
+      BiConsumer<String, NodeUri> callback = tuple2._2();
 
       String taskId = path.substring(path.lastIndexOf("/") + 1);
 
@@ -217,7 +219,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    private AsyncCallback.DataCallback assignTaskCallback = (rc, path, context, data, stat) -> {
 
       final String taskId = path.substring(path.lastIndexOf("/") + 1);
-      final BiConsumer<String, AkkaNodeUri> callback = (BiConsumer<String, AkkaNodeUri>) context;
+      final BiConsumer<String, NodeUri> callback = (BiConsumer<String, NodeUri>) context;
 
       switch (KeeperException.Code.get(rc)) {
          case CONNECTIONLOSS:
@@ -331,7 +333,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    }
 
 
-   private void createAssignment(String taskId, String designatedWorker, BiConsumer<String, AkkaNodeUri> callback) {
+   private void createAssignment(String taskId, String designatedWorker, BiConsumer<String, NodeUri> callback) {
       final String path1 = zkTaskAssignmentPath + "/" + designatedWorker;
 
       createAssignment(path1, taskId, designatedWorker, (ww, ww1) -> {
@@ -354,7 +356,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    }
 
 
-   public void assignTask(String task, BiConsumer<String, AkkaNodeUri> callback) {
+   public void assignTask(String task, BiConsumer<String, NodeUri> callback) {
       zk.getData(getPath4TaskId(task), false, assignTaskCallback, callback);
    }
 
@@ -371,7 +373,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    }
 
 
-   private void createAssignment(String assignmentPath, String taskId, String workerId, BiConsumer<String, AkkaNodeUri> callback) {
+   private void createAssignment(String assignmentPath, String taskId, String workerId, BiConsumer<String, NodeUri> callback) {
       byte[] data = new byte[0];
       zk.create(assignmentPath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, createAssignmentCallback,
               new TupleThree<>(taskId, workerId, callback));
@@ -411,10 +413,10 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    }
 
 
-   private void updateTaskHandler(String path, String workerId, BiConsumer<String, AkkaNodeUri> callback) {
+   private void updateTaskHandler(String path, String workerId, BiConsumer<String, NodeUri> callback) {
       byte[] data = UTF8.getBytes(workerId);
 
-      TupleTwo<String, BiConsumer<String, AkkaNodeUri>> tuple2 = new TupleTwo<>(workerId, callback);
+      TupleTwo<String, BiConsumer<String, NodeUri>> tuple2 = new TupleTwo<>(workerId, callback);
 
       zk.setData(path, data, -1, updateTaskHandlerCallback, tuple2);
    }
@@ -436,8 +438,8 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    }
 
 
-   private AkkaNodeUri getUri(String workerId) {
-      AkkaNodeUri worker = new AkkaNodeUri();
+   private NodeUri getUri(String workerId) {
+      NodeUri worker = new NodeUri();
       String[] parts = workerId.split("_");
       worker.setHost(parts[0]);
       worker.setPort(Integer.parseInt(parts[1]));
@@ -446,7 +448,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    }
 
 
-   @Override public void getWorkerAssigned2Task(String taskId, Consumer<AkkaNodeUri> callback) {
+   @Override public void getWorkerAssigned2Task(String taskId, Consumer<NodeUri> callback) {
       zk.getData(getPath4TaskId(taskId), false, getWorkerAssigned2TaskCallback, callback);
    }
 

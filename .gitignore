@@ -3,6 +3,7 @@ target/
 *.iml
 
 .vagrant/
+bin/
 
 # Compiled class file
 *.class

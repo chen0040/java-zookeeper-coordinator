@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -16,11 +16,11 @@ public interface TaskAssignmentService {
 
    void isTaskAssigned(String taskId, BiConsumer<String, Boolean> callback);
 
-   void getWorkerAssigned2Task(String taskId, Consumer<AkkaNodeUri> callback);
+   void getWorkerAssigned2Task(String taskId, Consumer<NodeUri> callback);
 
    void createTask(String taskId, Consumer<String> callback);
 
    void taskExists(String taskId, BiConsumer<String, Boolean> callback);
 
-   void assignTask(String taskId, BiConsumer<String, AkkaNodeUri> callback);
+   void assignTask(String taskId, BiConsumer<String, NodeUri> callback);
 }

@@ -1,6 +1,8 @@
-package com.github.chen0040.zkcoordinator.utils;
+package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.utils.ZkTimer;
+import com.github.chen0040.zkcoordinator.utils.ZkTimerFactory;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -17,9 +19,9 @@ import java.util.function.Consumer;
 /**
  * Created by xschen on 9/20/17.
  */
-public class ZkController implements Watcher {
+public class ZkConnector implements Watcher {
 
-   private static final Logger logger = LoggerFactory.getLogger(ZkController.class);
+   private static final Logger logger = LoggerFactory.getLogger(ZkConnector.class);
 
    private ZooKeeper zk;
    private final ZkTimer timer;
@@ -35,7 +37,7 @@ public class ZkController implements Watcher {
    private String zkSessionId = "";
    private long lastTimeout = 0L;
 
-   public ZkController(String zkConnect, long reconnectDelayWhenSessionExpired) {
+   public ZkConnector(String zkConnect, long reconnectDelayWhenSessionExpired) {
       this.reconnectDelayWhenSessionExpired = reconnectDelayWhenSessionExpired;
       this.zkConnect = zkConnect;
 

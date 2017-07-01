@@ -1,8 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
-import com.github.chen0040.zkcoordinator.model.ZkConfig;
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
@@ -27,11 +27,11 @@ public class MasterClusterServiceImpl implements MasterClusterService {
    private static final Logger logger = LoggerFactory.getLogger(MasterClusterServiceImpl.class);
    private ZooKeeper zk;
 
-   private List<Consumer<List<AkkaNodeUri>>> masterAddedListeners = new ArrayList<>();
-   private List<Consumer<List<AkkaNodeUri>>> masterChangeListeners = new ArrayList<>();
+   private List<Consumer<List<NodeUri>>> masterAddedListeners = new ArrayList<>();
+   private List<Consumer<List<NodeUri>>> masterChangeListeners = new ArrayList<>();
 
    private final Set<String> masters = new HashSet<>();
-   private final List<AkkaNodeUri> masterUris = new ArrayList<>();
+   private final List<NodeUri> masterUris = new ArrayList<>();
 
    private final String masterSystemName;
    private final String zkMasterPath;
@@ -65,7 +65,7 @@ public class MasterClusterServiceImpl implements MasterClusterService {
    }
 
 
-   public void addMasterChangeListener(Consumer<List<AkkaNodeUri>> listener) {
+   public void addMasterChangeListener(Consumer<List<NodeUri>> listener) {
       masterChangeListeners.add(listener);
    }
 
@@ -84,7 +84,7 @@ public class MasterClusterServiceImpl implements MasterClusterService {
       masters.clear();
       masters.addAll(children);
 
-      Set<AkkaNodeUri> oldMasterUris = new HashSet<>(masterUris);
+      Set<NodeUri> oldMasterUris = new HashSet<>(masterUris);
 
       List<String> temp = new ArrayList<>(children);
       temp.sort(String::compareTo);
@@ -94,8 +94,8 @@ public class MasterClusterServiceImpl implements MasterClusterService {
 
       masterChangeListeners.forEach(listener -> listener.accept(masterUris));
 
-      List<AkkaNodeUri> newlyAddedMasterUris = new ArrayList<>();
-      for(AkkaNodeUri newMaster : masterUris){
+      List<NodeUri> newlyAddedMasterUris = new ArrayList<>();
+      for(NodeUri newMaster : masterUris){
          if(!oldMasterUris.contains(newMaster)){
             newlyAddedMasterUris.add(newMaster);
          }
@@ -106,12 +106,12 @@ public class MasterClusterServiceImpl implements MasterClusterService {
       }
    }
 
-   public List<AkkaNodeUri> masters(){
+   public List<NodeUri> masters(){
       return masterUris;
    }
 
 
-   @Override public void addMasterAddedListener(Consumer<List<AkkaNodeUri>> listener) {
+   @Override public void addMasterAddedListener(Consumer<List<NodeUri>> listener) {
       masterAddedListeners.add(listener);
    }
 

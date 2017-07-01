@@ -1,7 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
+import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
