@@ -1,4 +1,4 @@
-package com.github.chen0040.zkcoordinator.model;
+package com.github.chen0040.zkcoordinator.enums;
 
 
 /**

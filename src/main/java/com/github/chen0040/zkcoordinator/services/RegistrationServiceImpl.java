@@ -2,7 +2,7 @@ package com.github.chen0040.zkcoordinator.services;
 
 
 import com.github.chen0040.zkcoordinator.model.UTF8;
-import com.github.chen0040.zkcoordinator.model.ZkNodePaths;
+import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
 import com.github.chen0040.zkcoordinator.utils.ZkTimer;
