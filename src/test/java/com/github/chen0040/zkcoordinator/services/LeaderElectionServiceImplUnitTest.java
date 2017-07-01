@@ -44,7 +44,7 @@ public class LeaderElectionServiceImplUnitTest extends ZooKeeperConfigurationCon
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig.getRootPath(), zkConfig.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, IpTools.getIpAddress());
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 

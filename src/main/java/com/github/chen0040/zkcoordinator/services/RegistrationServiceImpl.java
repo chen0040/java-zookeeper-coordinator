@@ -1,7 +1,9 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.consts.TaskStates;
 import com.github.chen0040.zkcoordinator.model.UTF8;
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
 import com.github.chen0040.zkcoordinator.utils.ZkTimer;
@@ -71,17 +73,17 @@ public class RegistrationServiceImpl implements RegistrationService {
    };
 
 
-   public RegistrationServiceImpl(Watcher watcher, String zkConnect, String zkRootPath, String zkNodePath, String groupName, String ipAddress, long reconnectDelayWhenSessionExpired) {
+   public RegistrationServiceImpl(Watcher watcher, String zkConnect, ZkConfig zkConfig, String groupName, String ipAddress) {
       this.watcher = watcher;
       this.zkConnect = zkConnect;
 
       this.groupName = groupName;
       this.ipAddress = ipAddress;
 
-      this.zkRootPath = zkRootPath;
-      this.zkNodePath = zkNodePath;
+      this.zkRootPath = zkConfig.getRootPath();
+      this.zkNodePath = zkConfig.getNodePath();
 
-      this.reconnectDelayWhenSessionExpired = reconnectDelayWhenSessionExpired;
+      this.reconnectDelayWhenSessionExpired = zkConfig.getReconnectDelayWhenSessionExpired();
 
       this.timer = ZkTimerFactory.createTimer();
    }
@@ -135,7 +137,7 @@ public class RegistrationServiceImpl implements RegistrationService {
          }
       };
 
-      zk.create(zkNodePath + "/" + serverId, UTF8.getBytes("Idle"), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, callback, null);
+      zk.create(zkNodePath + "/" + serverId, UTF8.getBytes(TaskStates.Idle), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, callback, null);
    }
 
    @Override

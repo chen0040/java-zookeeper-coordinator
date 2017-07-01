@@ -144,7 +144,7 @@ public class MasterController implements Watcher, Master {
    }
 
    protected RegistrationService createRegistrationService(){
-      return new RegistrationServiceImpl(this, zkConnect, zkConfig.getRootPath(), zkConfig.getNodePath(), groupName, ipAddress, zkConfig.getReconnectDelayWhenSessionExpired());
+      return new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, ipAddress);
    }
 
    protected LeaderElectionService createLeaderElectionService(ZooKeeper zk, String serverId, int port){

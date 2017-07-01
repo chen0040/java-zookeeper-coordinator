@@ -25,7 +25,6 @@ public class LeaderWatchServiceImplUnitTest extends ZooKeeperConfigurationContex
 
    private RegistrationService registrationService;
    private ZooKeeper zkClient;
-   private long reconnectDelayWhenSessionExpired = 20000;
    private String zkConnect = "localhost:" + zkPort;
    private String groupName = "groupName";
    private RegistrationCompleted registrationCompleted = null;
@@ -47,7 +46,7 @@ public class LeaderWatchServiceImplUnitTest extends ZooKeeperConfigurationContex
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig.getRootPath(), zkConfig.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, IpTools.getIpAddress());
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 

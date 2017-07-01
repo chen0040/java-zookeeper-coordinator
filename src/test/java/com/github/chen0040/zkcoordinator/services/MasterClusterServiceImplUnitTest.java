@@ -31,7 +31,7 @@ public class MasterClusterServiceImplUnitTest extends ZooKeeperConfigurationCont
    private RegistrationCompleted registrationCompleted = null;
    private BootstrapService bootstrapService;
 
-   private ZkConfig paths = new ZkConfig();
+   private ZkConfig zkConfig = new ZkConfig();
 
    private static final Logger logger = LoggerFactory.getLogger(MasterClusterServiceImplUnitTest.class);
 
@@ -43,11 +43,11 @@ public class MasterClusterServiceImplUnitTest extends ZooKeeperConfigurationCont
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, paths.getRootPath(), paths.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig, groupName, IpTools.getIpAddress());
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 
-         bootstrapService = new BootstrapServiceImpl(zk,paths);
+         bootstrapService = new BootstrapServiceImpl(zk, zkConfig);
          bootstrapService.bootstrap();
       });
       registrationService.onZkClosed(message -> zkClient = null);
