@@ -72,7 +72,7 @@ public class MasterNode implements Watcher, MasterActor, ZookeeperActor {
       bootstrapService = createBootstrapService(zk);
       taskAssignmentService = createTaskAssignmentService(zk);
       workerClusterService = createWorkerClusterService(zk);
-      requestClusterService = createProducerClusterService(zk);
+      requestClusterService = createRequestClusterService(zk);
 
       workerClusterService.addWorkerChangeListener((workers) -> taskAssignmentService.reassignAndSet(workers));
 
@@ -156,11 +156,11 @@ public class MasterNode implements Watcher, MasterActor, ZookeeperActor {
    }
 
    protected WorkerClusterService createWorkerClusterService(ZooKeeper zk) {
-      return new WorkerClusterServiceImpl(zk, zkConfig.getWorkerPath());
+      return new WorkerClusterServiceImpl(zk, zkConfig.getWorkerPath(), zkConfig.getWorkerSystemName());
    }
 
-   protected RequestClusterService createProducerClusterService(ZooKeeper zk) {
-      return new RequestClusterServiceImpl(zk, zkConfig.getRequestPath());
+   protected RequestClusterService createRequestClusterService(ZooKeeper zk) {
+      return new RequestClusterServiceImpl(zk, zkConfig.getRequestPath(), zkConfig.getRequestSystemName());
    }
 
    @Override public void takeLeadership(String ipAddress, int port, String masterId) {

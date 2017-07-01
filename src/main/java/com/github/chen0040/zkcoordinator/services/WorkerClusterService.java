@@ -1,6 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -14,4 +16,6 @@ public interface WorkerClusterService {
    boolean workerExists(String workerId);
 
    void addWorkerChangeListener(Consumer<List<String>> listener);
+
+   List<NodeUri> workers();
 }

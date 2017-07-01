@@ -239,3 +239,27 @@ of the request node:
 * taskExists(String taskId, BiConsumer<String, Boolean> callback): this api checks if a particular task has been
 created in the zookeeper task cluster
 * createTask(String taskId): this api creates a task in the zookeeper task cluster.
+
+### Interact with the cluster using ClientNode
+
+For an application external to the cluster to interact with the cluster, a ClientNode class can be used:
+
+```java
+ZkConfig config = new ZkConfig();
+config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+
+final ClientNode application = new ClientNode(config);
+application.setTrackingWorkers(true); // default set to false 
+application.connect();
+
+// return the list of uris of all active master nodes
+List<NodeUri> masters = application.getMasters();
+
+// return the list of uris of all active request nodes
+List<NodeUri> producers = application.getProducers();
+
+// return the list of uris of all active worker nodes (only available when trackingWorkers is set to true)
+List<NodeUri> workers = application.getWorkers();
+
+application.disconnect();
+```

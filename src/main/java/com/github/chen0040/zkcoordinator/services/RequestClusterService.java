@@ -1,6 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -14,4 +16,6 @@ public interface RequestClusterService {
    boolean producerExists(String producerId);
 
    void addProducerChangeListener(Consumer<List<String>> listener);
+
+   List<NodeUri> producers();
 }

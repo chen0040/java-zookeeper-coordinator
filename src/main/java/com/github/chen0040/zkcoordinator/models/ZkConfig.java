@@ -26,6 +26,7 @@ public class ZkConfig {
 
    private String workerSystemName = "WorkerActorSystem";
    private String masterSystemName = "MasterActorSystem";
+   private String requestSystemName = "RequestActorSystem";
 
    private String zkConnect = "";
    private int startingPort = 9000;

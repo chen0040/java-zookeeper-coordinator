@@ -1,6 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.models.NodeUri;
+import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -13,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 /**
@@ -23,9 +26,13 @@ public class WorkerClusterServiceImpl implements WorkerClusterService {
    private static final Logger logger = LoggerFactory.getLogger(WorkerClusterServiceImpl.class);
    private final ZooKeeper zk;
    private final List<Consumer<List<String>>> workerChangeListeners = new ArrayList<>();
-   private final String zkWorkerPath;
 
-   private Set<String> workers = new HashSet<>();
+   private final String zkWorkerPath;
+   private final String workerSystemName;
+
+   private final Set<String> workers = new HashSet<>();
+   private final List<NodeUri> workerUris = new ArrayList<>();
+
    private AsyncCallback.ChildrenCallback workersGetChildrenCallback = (rc, path, context, children) -> {
       switch (KeeperException.Code.get(rc)) {
          case CONNECTIONLOSS:
@@ -46,14 +53,20 @@ public class WorkerClusterServiceImpl implements WorkerClusterService {
       }
    };
 
-   public WorkerClusterServiceImpl(ZooKeeper zk, String zkWorkerPath) {
+   public WorkerClusterServiceImpl(ZooKeeper zk, String zkWorkerPath, String workerSystemName) {
       this.zk = zk;
       this.zkWorkerPath = zkWorkerPath;
+      this.workerSystemName = workerSystemName;
    }
 
 
    public void addWorkerChangeListener(Consumer<List<String>> listener) {
       workerChangeListeners.add(listener);
+   }
+
+
+   @Override public List<NodeUri> workers() {
+      return workerUris;
    }
 
 
@@ -68,7 +81,8 @@ public class WorkerClusterServiceImpl implements WorkerClusterService {
 
 
    private void notifyWorkerChanged(List<String> children) {
-      workers = new HashSet<>(children);
+      workers.clear();
+      workers.addAll(children);
 
       logger.info("reporting new worker's clusters: {}", children.size());
 
@@ -76,6 +90,9 @@ public class WorkerClusterServiceImpl implements WorkerClusterService {
       for(int i=0; i < count; ++i) {
          logger.info("worker: {}", children.get(i));
       }
+
+      workerUris.clear();
+      workerUris.addAll(workers.stream().map(worker -> ZkUtils.toAkkaNodeUri(worker, workerSystemName)).collect(Collectors.toList()));
 
       workerChangeListeners.forEach(listener -> listener.accept(children));
    }

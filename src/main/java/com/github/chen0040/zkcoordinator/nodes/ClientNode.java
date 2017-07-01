@@ -32,6 +32,8 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
    private LeaderWatchService leaderWatchService;
    private MasterClusterService masterClusterService;
    private TaskAssignmentService taskAssignmentService;
+   private WorkerClusterService workerClusterService;
+   private RequestClusterService requestClusterService;
 
    @Getter
    private String workerId = null;
@@ -60,6 +62,10 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
    private boolean trackingMasters = true;
    @Setter
    private boolean capableOfTaskCreation = false;
+   @Setter
+   private boolean trackingRequests = true;
+   @Setter
+   private boolean trackingWorkers = false;
 
    public ClientNode(ZkConfig config) {
       this.zkConfig = config;
@@ -105,12 +111,24 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
          leaderWatchService = createLeaderWatchService(zk);
          masterClusterService = createMasterClusterService(zk);
 
+         requestClusterService = createRequestClusterService(zk);
+         workerClusterService = createWorkerClusterService(zk);
+
          if(leaderWatchService != null) {
             leaderWatchService.watchLeader();
          }
          if(masterClusterService != null) {
             masterClusterService.watchMasters();
          }
+
+         if(requestClusterService != null) {
+            requestClusterService.watchProducers();
+         }
+
+         if(workerClusterService != null) {
+            workerClusterService.watchWorkers();
+         }
+
       });
 
       connector.start(zkConfig.getSessionTimeout());
@@ -147,6 +165,15 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
       return new MasterClusterServiceImpl(zk, zkConfig);
    }
 
+   protected RequestClusterService createRequestClusterService(ZooKeeper zk) {
+      if(!trackingRequests) return null;
+      return new RequestClusterServiceImpl(zk, zkConfig.getRequestPath(), zkConfig.getRequestSystemName());
+   }
+
+   protected WorkerClusterService createWorkerClusterService(ZooKeeper zk) {
+      if(!trackingWorkers) return null;
+      return new WorkerClusterServiceImpl(zk, zkConfig.getWorkerPath(), zkConfig.getWorkerSystemName());
+   }
 
    public boolean leaderExists() {
       if(leaderWatchService == null){
@@ -191,4 +218,21 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
       }
       return masterClusterService.masters();
    }
+
+   public List<NodeUri> getProducers() {
+      if(requestClusterService == null) {
+         logger.error("This node is not capable of tracking requests!");
+         return new ArrayList<>();
+      }
+      return requestClusterService.producers();
+   }
+
+   public List<NodeUri> getWorkers() {
+      if(workerClusterService == null) {
+         logger.error("This node is not capable of tracking workers!");
+         return new ArrayList<>();
+      }
+      return workerClusterService.workers();
+   }
+
 }
