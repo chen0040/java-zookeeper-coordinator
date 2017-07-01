@@ -50,16 +50,17 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
    private final int initialPort;
 
    @Getter
-   private final ZkConfig zkConfig = new ZkConfig();
+   private final ZkConfig zkConfig;
 
    @Getter
    private boolean running = false;
 
-   public RequestNode(String zkConnect, int initialPort, String groupName) {
+   public RequestNode(ZkConfig config) {
+      this.zkConfig = config;
       ipAddress = IpTools.getIpAddress();
-      this.initialPort = initialPort;
-      this.zkConnect = zkConnect;
-      this.groupName = groupName;
+      this.initialPort = config.getInitialPort();
+      this.zkConnect = config.getZkConnect();
+      this.groupName = config.getRequestGroupName();
    }
 
    @Override public void startSystem(String ipAddress, int port, String masterId){

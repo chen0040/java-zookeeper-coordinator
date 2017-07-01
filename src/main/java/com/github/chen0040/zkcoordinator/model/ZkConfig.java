@@ -15,18 +15,20 @@ import java.util.List;
 @Setter
 public class ZkConfig {
    private String rootPathId = "zk-coordinator";
-   private String workerPathId = "workers";
+   private String workerGroupName = "workers";
    private String nodePathId = "nodes";
-   private String masterPathId = "masters";
+   private String masterGroupName = "masters";
    private String leaderPathId = "leader";
-   private String taskPathId = "tasks";
+   private String taskGroupName = "tasks";
    private String taskAssignmentPathId = "assign";
-   private String requestPathId = "requests";
+   private String requestGroupName = "requests";
    private String corrPathId = "corr";
 
    private String workerSystemName = "WorkerActorSystem";
    private String masterSystemName = "MasterActorSystem";
 
+   private String zkConnect = "";
+   private int initialPort = 9000;
 
    private long reconnectDelayWhenSessionExpired = 180000;
    private int sessionTimeout = 15000;
@@ -36,7 +38,7 @@ public class ZkConfig {
    }
 
    public String getWorkerPath(){
-      return "/" + rootPathId + "/" + workerPathId;
+      return "/" + rootPathId + "/" + workerGroupName;
    }
 
    public String getNodePath(){
@@ -44,11 +46,11 @@ public class ZkConfig {
    }
 
    public String getRequestPath() {
-      return "/" + rootPathId + "/" + requestPathId;
+      return "/" + rootPathId + "/" + requestGroupName;
    }
 
    public String getMasterPath() {
-      return "/" + rootPathId + "/" + masterPathId;
+      return "/" + rootPathId + "/" + masterGroupName;
    }
 
    public String getLeaderPath(){
@@ -75,7 +77,7 @@ public class ZkConfig {
    }
 
    public String getTaskPath() {
-      return "/" + rootPathId + "/" + taskPathId;
+      return "/" + rootPathId + "/" + taskGroupName;
    }
 
    public String getTaskAssignmentPath(){
