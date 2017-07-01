@@ -32,7 +32,7 @@ public class LeaderElectionServiceImplUnitTest extends ZooKeeperConfigurationCon
    private BootstrapService bootstrapService;
    private MasterClusterService masterClusterService;
 
-   private ZkConfig paths = new ZkConfig();
+   private ZkConfig zkConfig = new ZkConfig();
 
    private static final Logger logger = LoggerFactory.getLogger(LeaderElectionServiceImplUnitTest.class);
 
@@ -44,18 +44,18 @@ public class LeaderElectionServiceImplUnitTest extends ZooKeeperConfigurationCon
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, paths.getRootPath(), paths.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig.getRootPath(), zkConfig.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 
-         bootstrapService = new BootstrapServiceImpl(zk, paths);
+         bootstrapService = new BootstrapServiceImpl(zk, zkConfig);
          bootstrapService.bootstrap();
       });
       registrationService.onZkClosed(message -> zkClient = null);
       registrationService.addGroupJoinListener((zk, rc) -> {
          logger.info("group join success");
          registrationCompleted = rc;
-         masterClusterService = new MasterClusterServiceImpl(zk, paths.getMasterPath());
+         masterClusterService = new MasterClusterServiceImpl(zk, zkConfig);
          masterClusterService.watchMasters();
       });
    }

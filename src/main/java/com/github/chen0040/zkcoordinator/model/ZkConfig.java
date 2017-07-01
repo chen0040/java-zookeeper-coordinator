@@ -11,69 +11,74 @@ import java.util.List;
 /**
  * Created by xschen on 5/12/16.
  */
+@Getter
+@Setter
 public class ZkConfig {
-   private static final String Root = "/zk-coordinator";
-   private static final String Workers = "/zk-coordinator/workers";
-   private static final String Nodes = "/zk-coordinator/nodes";
-   private static final String Masters = "/zk-coordinator/masters";
-   private static final String Leader = "/zk-coordinator/leader";
-   private static final String Tasks = "/zk-coordinator/tasks";
-   private static final String TaskAssignments = "/zk-coordinator/assign";
-   private static final String Requests = "/zk-coordinator/requests";
-   private static final String Corr = "/zk-coordinator/corr";
+   private String rootPathId = "zk-coordinator";
+   private String workerPathId = "workers";
+   private String nodePathId = "nodes";
+   private String masterPathId = "masters";
+   private String leaderPathId = "leader";
+   private String taskPathId = "tasks";
+   private String taskAssignmentPathId = "assign";
+   private String requestPathId = "requests";
+   private String corrPathId = "corr";
 
-   @Getter
-   @Setter
+   private String workerSystemName = "WorkerActorSystem";
+   private String masterSystemName = "MasterActorSystem";
+
+
    private long reconnectDelayWhenSessionExpired = 180000;
-
-   @Getter
-   @Setter
    private int sessionTimeout = 15000;
 
    public String getRootPath(){
-      return Root;
+      return "/" + rootPathId;
    }
 
    public String getWorkerPath(){
-      return Workers;
+      return "/" + rootPathId + "/" + workerPathId;
    }
 
    public String getNodePath(){
-      return Nodes;
+      return "/" + rootPathId + "/" + nodePathId;
    }
 
    public String getRequestPath() {
-      return Requests;
+      return "/" + rootPathId + "/" + requestPathId;
    }
 
    public String getMasterPath() {
-      return Masters;
+      return "/" + rootPathId + "/" + masterPathId;
    }
 
    public String getLeaderPath(){
-      return Leader;
+      return "/" + rootPathId + "/" + leaderPathId;
    }
    
    public List<String> getAllPaths(){
       List<String> result = new ArrayList<>();
-      result.add(ZkConfig.Root);
-      result.add(ZkConfig.Nodes);
-      result.add(ZkConfig.Masters);
-      result.add(ZkConfig.Workers);
-      result.add(ZkConfig.Requests);
-      result.add(ZkConfig.Tasks);
-      result.add(ZkConfig.Corr);
+      result.add(getRootPath());
+      result.add(getNodePath());
+      result.add(getMasterPath());
+      result.add(getWorkerPath());
+      result.add(getRequestPath());
+      result.add(getTaskPath());
+      result.add(getCorrPath());
 
-      result.add(ZkConfig.TaskAssignments);
+      result.add(getTaskAssignmentPath());
 
       return result;
    }
 
+   public String getCorrPath() {
+      return "/" + rootPathId + "/" + corrPathId;
+   }
+
    public String getTaskPath() {
-      return Tasks;
+      return "/" + rootPathId + "/" + taskPathId;
    }
 
    public String getTaskAssignmentPath(){
-      return TaskAssignments;
+      return "/" + rootPathId + "/" + taskAssignmentPathId;
    }
 }

@@ -156,7 +156,7 @@ public class MasterController implements Watcher, Master {
    }
 
    protected TaskAssignmentService createTaskAssignmentService(ZooKeeper zk) {
-      return  new TaskAssignmentServiceImpl(zk, zkConfig.getTaskPath(), zkConfig.getTaskAssignmentPath());
+      return  new TaskAssignmentServiceImpl(zk, zkConfig);
    }
 
    protected WorkerClusterService createWorkerClusterService(ZooKeeper zk) {

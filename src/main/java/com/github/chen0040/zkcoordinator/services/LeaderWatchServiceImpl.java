@@ -1,8 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.consts.ActorSystemIdentifiers;
 import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
@@ -13,11 +13,11 @@ import org.apache.zookeeper.ZooKeeper;
 /**
  * Created by xschen on 5/11/16.
  */
-public class LeaderServiceImpl implements LeaderService {
+public class LeaderWatchServiceImpl implements LeaderWatchService {
    private AkkaNodeUri masterConfig;
    private ZooKeeper zk;
 
-   private final String masterActorSystemIdentifier = ActorSystemIdentifiers.ACTORSYSTEMNAME_MASTERNODE;
+   private String masterSystemName;
    private final String zkLeaderPath;
 
    private Watcher awaitForLeaderElectedWatcher = watchedEvent -> {
@@ -48,7 +48,7 @@ public class LeaderServiceImpl implements LeaderService {
       switch (KeeperException.Code.get(rc)) {
          case OK:
             String leaderInfo = new String(data);
-            masterConfig = ZkUtils.toAkkaNodeUri(leaderInfo, masterActorSystemIdentifier);
+            masterConfig = ZkUtils.toAkkaNodeUri(leaderInfo, masterSystemName);
             awaitForLeaderFailed();
             break;
          case CONNECTIONLOSS:
@@ -80,9 +80,10 @@ public class LeaderServiceImpl implements LeaderService {
       }
    };
 
-   public LeaderServiceImpl(ZooKeeper zk, String zkLeaderPath) {
+   public LeaderWatchServiceImpl(ZooKeeper zk, ZkConfig zkConfig) {
       this.zk = zk;
-      this.zkLeaderPath = zkLeaderPath;
+      this.zkLeaderPath = zkConfig.getLeaderPath();
+      this.masterSystemName = zkConfig.getMasterSystemName();
    }
 
 

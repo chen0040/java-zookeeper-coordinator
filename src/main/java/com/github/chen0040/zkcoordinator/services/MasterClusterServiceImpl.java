@@ -1,8 +1,8 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.consts.ActorSystemIdentifiers;
 import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
@@ -33,7 +33,7 @@ public class MasterClusterServiceImpl implements MasterClusterService {
    private final Set<String> masters = new HashSet<>();
    private final List<AkkaNodeUri> masterUris = new ArrayList<>();
 
-   private String masterActorSystemIdentifier = ActorSystemIdentifiers.ACTORSYSTEMNAME_MASTERNODE;
+   private final String masterSystemName;
    private final String zkMasterPath;
 
 
@@ -58,9 +58,10 @@ public class MasterClusterServiceImpl implements MasterClusterService {
    };
 
 
-   public MasterClusterServiceImpl(ZooKeeper zk, String zkMasterPath) {
+   public MasterClusterServiceImpl(ZooKeeper zk, ZkConfig zkConfig) {
       this.zk = zk;
-      this.zkMasterPath = zkMasterPath;
+      this.zkMasterPath = zkConfig.getMasterPath();
+      this.masterSystemName = zkConfig.getMasterSystemName();
    }
 
 
@@ -89,7 +90,7 @@ public class MasterClusterServiceImpl implements MasterClusterService {
       temp.sort(String::compareTo);
 
       masterUris.clear();
-      masterUris.addAll(temp.stream().map(master -> ZkUtils.toAkkaNodeUri(master, masterActorSystemIdentifier)).collect(Collectors.toList()));
+      masterUris.addAll(temp.stream().map(master -> ZkUtils.toAkkaNodeUri(master, masterSystemName)).collect(Collectors.toList()));
 
       masterChangeListeners.forEach(listener -> listener.accept(masterUris));
 

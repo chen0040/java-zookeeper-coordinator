@@ -21,7 +21,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Created by xschen on 9/9/2016.
  */
-public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
+public class LeaderWatchServiceImplUnitTest extends ZooKeeperConfigurationContext {
 
    private RegistrationService registrationService;
    private ZooKeeper zkClient;
@@ -30,14 +30,14 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
    private String groupName = "groupName";
    private RegistrationCompleted registrationCompleted = null;
    private BootstrapService bootstrapService;
-   private LeaderService leaderService;
+   private LeaderWatchService leaderWatchService;
    private LeaderElectionService leaderElectionService;
    private String leaderServerId;
    private int leaderPort;
 
-   private ZkConfig paths = new ZkConfig();
+   private ZkConfig zkConfig = new ZkConfig();
 
-   private static final Logger logger = LoggerFactory.getLogger(LeaderServiceImplUnitTest.class);
+   private static final Logger logger = LoggerFactory.getLogger(LeaderWatchServiceImplUnitTest.class);
 
    @BeforeMethod @Override public void setUp() throws Exception {
       super.setUp();
@@ -47,11 +47,11 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, paths.getRootPath(), paths.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, zkConfig.getRootPath(), zkConfig.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 
-         bootstrapService = new BootstrapServiceImpl(zk, paths);
+         bootstrapService = new BootstrapServiceImpl(zk, zkConfig);
          bootstrapService.bootstrap();
 
 
@@ -61,10 +61,10 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
          logger.info("group join success");
          registrationCompleted = rc;
 
-         leaderService = new LeaderServiceImpl(zk, paths.getLeaderPath());
-         leaderService.watchLeader();
+         leaderWatchService = new LeaderWatchServiceImpl(zk, zkConfig);
+         leaderWatchService.watchLeader();
 
-         leaderElectionService = new LeaderElectionServiceImpl(zk, rc.getServerId(), rc.getPort(), paths.getLeaderPath());
+         leaderElectionService = new LeaderElectionServiceImpl(zk, rc.getServerId(), rc.getPort(), zkConfig.getLeaderPath());
          leaderElectionService.addLeadershipListener((serverId, port) -> {
             logger.info("Take leadership");
             leaderPort = port;
@@ -89,13 +89,13 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
       assertThat(registrationCompleted, is(notNullValue()));
       assertTrue(IpTools.isPortAvailable(registrationCompleted.getPort()));
 
-      assertThat(leaderService, is(notNullValue()));
-      assertTrue(leaderService.leaderExists());
+      assertThat(leaderWatchService, is(notNullValue()));
+      assertTrue(leaderWatchService.leaderExists());
 
       assertThat(registrationCompleted.getServerId(), is(leaderServerId));
       assertThat(registrationCompleted.getPort(), is(leaderPort));
-      assertThat(leaderService.getLeaderUri().getHost(), is(IpTools.getIpAddress()));
-      assertThat(leaderService.getLeaderUri().getPort(), is(leaderPort));
+      assertThat(leaderWatchService.getLeaderUri().getHost(), is(IpTools.getIpAddress()));
+      assertThat(leaderWatchService.getLeaderUri().getPort(), is(leaderPort));
 
       registrationService.stopZk();
 

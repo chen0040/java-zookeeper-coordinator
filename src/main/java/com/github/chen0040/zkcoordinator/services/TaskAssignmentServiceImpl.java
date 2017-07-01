@@ -2,7 +2,6 @@ package com.github.chen0040.zkcoordinator.services;
 
 
 import com.github.chen0040.data.utils.TupleTwo;
-import com.github.chen0040.zkcoordinator.consts.ActorSystemIdentifiers;
 import com.github.chen0040.zkcoordinator.consts.TaskStates;
 import com.github.chen0040.zkcoordinator.model.*;
 import org.apache.zookeeper.*;
@@ -29,6 +28,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
    private final String zkTaskPath;
    private final String zkTaskAssignmentPath;
+   private final String workerSystemName;
 
    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
@@ -264,10 +264,11 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
       }
    };
 
-   public TaskAssignmentServiceImpl(ZooKeeper zk, String zkTaskPath, String zkTaskAssignmentPath){
+   public TaskAssignmentServiceImpl(ZooKeeper zk, ZkConfig zkConfig){
       this.zk = zk;
-      this.zkTaskPath = zkTaskPath;
-      this.zkTaskAssignmentPath = zkTaskAssignmentPath;
+      this.zkTaskPath = zkConfig.getTaskPath();
+      this.zkTaskAssignmentPath = zkConfig.getTaskAssignmentPath();
+      this.workerSystemName = zkConfig.getWorkerSystemName();
    }
 
 
@@ -440,7 +441,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
       String[] parts = workerId.split("_");
       worker.setHost(parts[0]);
       worker.setPort(Integer.parseInt(parts[1]));
-      worker.setSystem(ActorSystemIdentifiers.ACTORSYSTEMNAME_WORKERNODE);
+      worker.setSystem(workerSystemName);
       return worker;
    }
 
