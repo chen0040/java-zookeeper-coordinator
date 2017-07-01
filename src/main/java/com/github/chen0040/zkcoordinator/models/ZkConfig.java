@@ -28,7 +28,7 @@ public class ZkConfig {
    private String masterSystemName = "MasterActorSystem";
 
    private String zkConnect = "";
-   private int initialPort = 9000;
+   private int startingPort = 9000;
 
    private long reconnectDelayWhenSessionExpired = 180000;
    private int sessionTimeout = 15000;

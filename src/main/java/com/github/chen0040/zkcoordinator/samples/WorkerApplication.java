@@ -33,6 +33,8 @@ public class WorkerApplication extends WorkerNode {
    public static void main(String[] args) throws IOException, InterruptedException {
       ZkConfig config = new ZkConfig();
       config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      config.setStartingPort(9000); // worker node java program will find an un-used port from the port range starting at 9000
+
       final WorkerApplication application = new WorkerApplication(config);
       application.addShutdownHook();
       application.runForever();

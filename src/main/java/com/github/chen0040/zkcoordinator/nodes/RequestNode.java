@@ -59,7 +59,7 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
    public RequestNode(ZkConfig config) {
       this.zkConfig = config;
       ipAddress = IpTools.getIpAddress();
-      this.initialPort = config.getInitialPort();
+      this.initialPort = config.getStartingPort();
       this.zkConnect = config.getZkConnect();
       this.groupName = config.getRequestGroupName();
    }

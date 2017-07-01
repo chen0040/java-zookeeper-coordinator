@@ -33,6 +33,8 @@ public class RequestApplication extends RequestNode {
    public static void main(String[] args) throws IOException, InterruptedException {
       ZkConfig config = new ZkConfig();
       config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      config.setStartingPort(7000); // request node java program will find an un-used port from the port range starting at 7000
+
       final RequestApplication application = new RequestApplication(config);
       application.addShutdownHook();
       application.runForever();

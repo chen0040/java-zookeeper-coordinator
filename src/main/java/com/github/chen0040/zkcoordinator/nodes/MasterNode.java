@@ -59,7 +59,7 @@ public class MasterNode implements Watcher, MasterActor, ZookeeperActor {
       this.zkConnect = zkConfig.getZkConnect();
       this.groupName = zkConfig.getMasterGroupName();
       this.ipAddress = IpTools.getIpAddress();
-      this.initialPort = zkConfig.getInitialPort();
+      this.initialPort = zkConfig.getStartingPort();
    }
 
 

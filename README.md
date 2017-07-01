@@ -32,7 +32,7 @@ Each type of nodes have a life cycle in which the following API method can be ex
 
 ### Create and run a master node
 
-Firstly defines a main class MasterApplication that inherits from MasterNode:
+Create a new java project, in the project, define a main class MasterApplication that inherits from MasterNode:
 
 ```java
 public class MasterApplication extends MasterNode {
@@ -64,6 +64,8 @@ public class MasterApplication extends MasterNode {
       // zookeeper connection string
       String zkConnectionString = "192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181"; 
       config.setZkConnect(zkConnectionString);
+      config.setStartingPort(6000); // the master node java program will find an un-used port from the port range starting at 6000
+      
       final MasterApplication application = new MasterApplication(config);
       application.addShutdownHook();
       application.runForever();
@@ -106,7 +108,7 @@ in the worker cluster.
 
 ### Create and run a worker node
 
-Firstly defines a class that inherits from WorkerNode:
+Create a new java project, in the project, define a main class WorkerApplication that inherits from WorkerNode:
 
 ```java
 public class WorkerApplication extends WorkerNode {
@@ -129,6 +131,8 @@ public class WorkerApplication extends WorkerNode {
    public static void main(String[] args) throws IOException, InterruptedException {
       ZkConfig config = new ZkConfig();
       config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      config.setStartingPort(7000); // the worker node java program will find an un-used port from the port range starting at 7000
+      
       final WorkerApplication application = new WorkerApplication(config);
       application.addShutdownHook();
       application.runForever();
@@ -165,7 +169,7 @@ WorkerApplication.taskExists(...)) during the application's lifecycle.
 
 ### Create and run a request node
 
-Firstly defines a class that inherits from RequestNode:
+Create a new java project, in the project, define a main class RequestApplication that inherits from RequestNode:
 
 ```java
 public class RequestApplication extends RequestNode {
@@ -188,6 +192,8 @@ public class RequestApplication extends RequestNode {
    public static void main(String[] args) throws IOException, InterruptedException {
       ZkConfig config = new ZkConfig();
       config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      config.setStartingPort(9000); // the request node java program will find an un-used port from the port range starting at 9000
+      
       final RequestApplication application = new RequestApplication(config);
       application.addShutdownHook();
       application.runForever();

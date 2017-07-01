@@ -66,7 +66,7 @@ public class WorkerNode implements Watcher, AutoCloseable, SystemActor, Zookeepe
    public WorkerNode(ZkConfig config) {
       this.zkConfig = config;
       this.zkConnect = zkConfig.getZkConnect();
-      this.initialPort = zkConfig.getInitialPort();
+      this.initialPort = zkConfig.getStartingPort();
       this.groupName = zkConfig.getWorkerGroupName();
       ipAddress = IpTools.getIpAddress();
 
