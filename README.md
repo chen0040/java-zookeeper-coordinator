@@ -2,6 +2,13 @@
 
 A java library that makes easy to develop distributed-tasking system with fail-safe and load balancing master-slave cluster via zookeeper
 
+Features
+
+Compared to Curator, java-zookeeper-coordinator is very light-weight, also it has many features built for
+building request-master-slave cluster architecture. It is also designed to handle CRUD on 
+large number of tasks and task assignments in the zookeeper (using a partition technique which controls
+the number of children under each zk node)
+
 # Usage
 
 The distributed system consists of three different types of nodes:
@@ -82,6 +89,19 @@ Inside the MasterApplication.runForever(), the method MasterApplication.start() 
 In the case the MasterApplication needs to be incorporated with another framework (e.g. Spring framework) which
 has its own forever loop, then calls MasterApplication.start() instead of MasterApplication.runForever.
 
+During the lifecycle of the master node, the MasterApplication has access to the following api to create tasks and assign tasks to worker nodes, as well
+as route message to these worker nodes:
+
+* taskExists(String taskId, BiConsumer<String, Boolean> callback): this api check whether a particular task
+has been created in the task cluster.
+* createTask(String taskId, Consumer<String> callback): this api create the task in the zookeeper task cluster
+* isTaskAssigned(String taskId, BiConsumer<String, Boolean> callback): this api check whether a particular task
+has been assigned to any worker node in the worker cluster.
+* getWorkerAssigned2Task(String taskId, Consumer<NodeUri> callback): this api query the uri of the worker node
+for which the task has been assigned to
+* assignTask(String taskId, BiConsumer<String, NodeUri> callback): this api assign a task to one of the worker
+in the worker cluster.
+
 
 
 ### Create and run a worker node
@@ -113,7 +133,6 @@ public class WorkerApplication extends WorkerNode {
       application.addShutdownHook();
       application.runForever();
    }
-
 }
 ```
 
@@ -131,6 +150,17 @@ Inside the WorkerApplication.runForever(), the method WorkerApplication.start() 
 In the case the WorkerApplication needs to be incorporated with another framework (e.g. Spring framework) which
 has its own forever loop, then calls WorkerApplication.start() instead of WorkerApplication.runForever.
 
+By default worker node does not know anything about the masters, if it needs access to masters cluster, then
+call one of the following api before calling WorkerApplication.runForever() or WorkerApplication.start():
+
+* WorkerApplication.setTrackingLeader(true): this call will enable the worker node to access to the currently
+active master leader by calling WorkerApplication.leaderExists() and WorkerApplication.getLeaderUri() during 
+the application's lifecycle.
+* WorkerApplication.setTrackingMasters(true): this call will enable the worker node to access the master
+cluster by calling WorkerApplication.getMasters() during the application's lifecycle.
+* WorkerApplication.setCapableOfTaskCreation(true): this call will enable the worker node to either
+create a new task (calling WorkerApplication.createTask(...)) or check whether a task exists (calling 
+WorkerApplication.taskExists(...)) during the application's lifecycle.
 
 
 ### Create and run a request node
@@ -138,5 +168,55 @@ has its own forever loop, then calls WorkerApplication.start() instead of Worker
 Firstly defines a class that inherits from RequestNode:
 
 ```java
+public class RequestApplication extends RequestNode {
 
+   private static final Logger logger = LoggerFactory.getLogger(RequestApplication.class);
+
+   public RequestApplication(ZkConfig zkConfig) {
+      super(zkConfig);
+   }
+
+
+   @Override public void startSystem(String ipAddress, int port, String masterId){
+      logger.info("start system at {}:{} with id = {}", ipAddress, port, masterId);
+   }
+
+   @Override public void stopSystem() {
+      logger.info("system shutdown");
+   }
+
+   public static void main(String[] args) throws IOException, InterruptedException {
+      ZkConfig config = new ZkConfig();
+      config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      final RequestApplication application = new RequestApplication(config);
+      application.addShutdownHook();
+      application.runForever();
+   }
+
+}
 ```
+
+
+The RequestApplication.main(...) is the main entry point for the request node java program. 
+
+The 2 APIs that user can overwrite during the lifecycle of the request node are explained below:
+
+* The RequestApplication.startSystem() will be invoked when the request node managed to connect to the zookeeper
+* The RequestApplication.stopSystem() will be invoked when the application.shutdown() is called (Note that shutdown() is
+call at the end in the above code due to application.addShutdownHook())
+
+Inside the RequestApplication.runForever(), the method RequestApplication.start() is called first to start
+ communication with zookeeper, the application is then entered into a forever while loop. 
+ 
+In the case the RequestApplication needs to be incorporated with another framework (e.g. Spring framework) which
+has its own forever loop, then calls RequestApplication.start() instead of RequestApplication.runForever.
+
+The following api allows the request node to communicate with the master leader or master cluster during the lifecycle
+of the request node:
+
+* boolean leaderExists(): this api checks whether the master leader exists
+* NodeUri getLeaderUri(): this api returns the uri of the currently active master leader
+* List<NodeUri> getMasters(): this api returns the uris of the active masters in the master cluster
+* taskExists(String taskId, BiConsumer<String, Boolean> callback): this api checks if a particular task has been
+created in the zookeeper task cluster
+* createTask(String taskId): this api creates a task in the zookeeper task cluster.

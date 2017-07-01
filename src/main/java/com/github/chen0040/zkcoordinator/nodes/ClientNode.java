@@ -2,7 +2,6 @@ package com.github.chen0040.zkcoordinator.nodes;
 
 
 import com.github.chen0040.zkcoordinator.models.NodeUri;
-import com.github.chen0040.zkcoordinator.models.RegistrationCompleted;
 import com.github.chen0040.zkcoordinator.models.ZkConfig;
 import com.github.chen0040.zkcoordinator.services.*;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
@@ -13,7 +12,6 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +59,7 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
    @Setter
    private boolean trackingMasters = true;
    @Setter
-   private boolean capableOfTaskAssignment = false;
+   private boolean capableOfTaskCreation = false;
 
    public ClientNode(ZkConfig config) {
       this.zkConfig = config;
@@ -135,7 +133,7 @@ public class ClientNode implements Watcher, AutoCloseable, ZookeeperActor {
    }
 
    protected TaskAssignmentService createTaskAssignmentService(ZooKeeper zk) {
-      if(!capableOfTaskAssignment) return null;
+      if(!capableOfTaskCreation) return null;
       return  new TaskAssignmentServiceImpl(zk, zkConfig);
    }
 
