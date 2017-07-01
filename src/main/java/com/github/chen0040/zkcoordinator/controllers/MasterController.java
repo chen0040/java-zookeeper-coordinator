@@ -2,8 +2,7 @@ package com.github.chen0040.zkcoordinator.controllers;
 
 import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
-import com.github.chen0040.zkcoordinator.model.ZkConfigs;
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.services.*;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import lombok.Getter;
@@ -25,7 +24,7 @@ public class MasterController implements Watcher, Master {
 
    private TaskAssignmentService taskAssignmentService;
    private WorkerClusterService workerClusterService;
-   private ProducerClusterService producerClusterService;
+   private RequestClusterService requestClusterService;
 
    private RegistrationService registrationService;
    private LeaderElectionService leaderElectionService;
@@ -51,6 +50,10 @@ public class MasterController implements Watcher, Master {
 
    @Getter
    private final int initialPort;
+
+   @Getter
+   private ZkConfig zkConfig = new ZkConfig();
+
 
    public MasterController(String zkConnect, String groupName, int initialPort) {
       this.zkConnect = zkConnect;
@@ -81,14 +84,14 @@ public class MasterController implements Watcher, Master {
       bootstrapService = createBootstrapService(zk);
       taskAssignmentService = createTaskAssignmentService(zk);
       workerClusterService = createWorkerClusterService(zk);
-      producerClusterService = createProducerClusterService(zk);
+      requestClusterService = createProducerClusterService(zk);
 
       workerClusterService.addWorkerChangeListener((workers) -> taskAssignmentService.reassignAndSet(workers));
 
 
       bootstrapService.bootstrap();
       workerClusterService.watchWorkers();
-      producerClusterService.watchProducers();
+      requestClusterService.watchProducers();
 
       try {
          Thread.sleep(100L);
@@ -137,31 +140,31 @@ public class MasterController implements Watcher, Master {
 
       registrationService.addGroupJoinListener(this::onZkGroupJoined);
 
-      registrationService.start(ZkConfigs.sessionTimeout, initialPort);
+      registrationService.start(zkConfig.getSessionTimeout(), initialPort);
    }
 
    protected RegistrationService createRegistrationService(){
-      return new RegistrationServiceImpl(this, zkConnect, groupName, ipAddress, ZkConfigs.reconnectDelayWhenSessionExpired);
+      return new RegistrationServiceImpl(this, zkConnect, zkConfig.getRootPath(), zkConfig.getNodePath(), groupName, ipAddress, zkConfig.getReconnectDelayWhenSessionExpired());
    }
 
    protected LeaderElectionService createLeaderElectionService(ZooKeeper zk, String serverId, int port){
-      return new LeaderElectionServiceImpl(zk, serverId, port, ZkNodePaths.DevLeader);
+      return new LeaderElectionServiceImpl(zk, serverId, port, zkConfig.getLeaderPath());
    }
 
    protected BootstrapService createBootstrapService(ZooKeeper zk) {
-      return new BootstrapServiceImpl(zk);
+      return new BootstrapServiceImpl(zk, zkConfig);
    }
 
    protected TaskAssignmentService createTaskAssignmentService(ZooKeeper zk) {
-      return  new TaskAssignmentServiceImpl(zk, ZkNodePaths.DevTasks, ZkNodePaths.DevTaskAssignments);
+      return  new TaskAssignmentServiceImpl(zk, zkConfig.getTaskPath(), zkConfig.getTaskAssignmentPath());
    }
 
    protected WorkerClusterService createWorkerClusterService(ZooKeeper zk) {
-      return new WorkerClusterServiceImpl(zk, ZkNodePaths.DevWorkers);
+      return new WorkerClusterServiceImpl(zk, zkConfig.getWorkerPath());
    }
 
-   protected ProducerClusterService createProducerClusterService(ZooKeeper zk) {
-      return new ProducerClusterServiceImpl(zk, ZkNodePaths.DevReaders);
+   protected RequestClusterService createProducerClusterService(ZooKeeper zk) {
+      return new RequestClusterServiceImpl(zk, zkConfig.getRequestPath());
    }
 
 

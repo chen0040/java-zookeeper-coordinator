@@ -2,7 +2,6 @@ package com.github.chen0040.zkcoordinator.services;
 
 
 import com.github.chen0040.zkcoordinator.model.UTF8;
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import com.github.chen0040.zkcoordinator.enums.MasterStates;
 import org.apache.zookeeper.*;
 import org.slf4j.Logger;
@@ -24,11 +23,10 @@ public class LeaderElectionServiceImpl implements LeaderElectionService {
    private String serverId;
    private List<BiConsumer<String, Integer>> leadershipListeners = new ArrayList<>();
    private List<BiConsumer<String, Integer>> resignListeners = new ArrayList<>();
-   private String leaderZkNodeIdentifier = ZkNodePaths.Leader;
+   private final String zkLeaderPath;
 
    Watcher awaitForLeaderFailedWatcher = watchedEvent -> {
       if (watchedEvent.getType() == Watcher.Event.EventType.NodeDeleted) {
-         assert leaderZkNodeIdentifier.equals(watchedEvent.getPath());
          runForLeader();
       }
    };
@@ -77,18 +75,11 @@ public class LeaderElectionServiceImpl implements LeaderElectionService {
       }
    };
 
-
-   public LeaderElectionServiceImpl(ZooKeeper zk, String serverId, int port) {
+   public LeaderElectionServiceImpl(ZooKeeper zk, String serverId, int port, String zkLeaderPath) {
       this.zk = zk;
       this.serverId = serverId;
       this.port = port;
-   }
-
-   public LeaderElectionServiceImpl(ZooKeeper zk, String serverId, int port, String leaderZkNodeIdentifier) {
-      this.zk = zk;
-      this.serverId = serverId;
-      this.port = port;
-      this.leaderZkNodeIdentifier = leaderZkNodeIdentifier;
+      this.zkLeaderPath = zkLeaderPath;
    }
 
 
@@ -103,13 +94,13 @@ public class LeaderElectionServiceImpl implements LeaderElectionService {
 
 
    private void queryLeader() {
-      zk.getData(leaderZkNodeIdentifier, false, callbackQueryLeader, null);
+      zk.getData(zkLeaderPath, false, callbackQueryLeader, null);
    }
 
 
    public void runForLeader() {
       resign();
-      zk.create(leaderZkNodeIdentifier, UTF8.getBytes(serverId), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, callbackRunForLeader, null);
+      zk.create(zkLeaderPath, UTF8.getBytes(serverId), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, callbackRunForLeader, null);
    }
 
 
@@ -119,7 +110,7 @@ public class LeaderElectionServiceImpl implements LeaderElectionService {
 
 
    private void awaitForLeaderFailed() {
-      zk.exists(leaderZkNodeIdentifier, awaitForLeaderFailedWatcher, awaitForLeaderFailedCallback, null);
+      zk.exists(zkLeaderPath, awaitForLeaderFailedWatcher, awaitForLeaderFailedCallback, null);
    }
 
 

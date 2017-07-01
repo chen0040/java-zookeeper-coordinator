@@ -2,7 +2,6 @@ package com.github.chen0040.zkcoordinator.services;
 
 
 import com.github.chen0040.zkcoordinator.consts.ActorSystemIdentifiers;
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
 import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
@@ -19,11 +18,10 @@ public class LeaderServiceImpl implements LeaderService {
    private ZooKeeper zk;
 
    private final String masterActorSystemIdentifier = ActorSystemIdentifiers.ACTORSYSTEMNAME_MASTERNODE;
-   private String leaderZkNodeIdentifier = ZkNodePaths.Leader;
+   private final String zkLeaderPath;
 
    private Watcher awaitForLeaderElectedWatcher = watchedEvent -> {
       if (watchedEvent.getType() == Watcher.Event.EventType.NodeCreated) {
-         assert leaderZkNodeIdentifier.equals(watchedEvent.getPath());
          getLeader();
       }
    };
@@ -78,19 +76,13 @@ public class LeaderServiceImpl implements LeaderService {
    };
    Watcher awaitForLeaderFailedWatcher = watchedEvent -> {
       if (watchedEvent.getType() == Watcher.Event.EventType.NodeDeleted) {
-         assert leaderZkNodeIdentifier.equals(watchedEvent.getPath());
          awaitForLeaderElected();
       }
    };
 
-
-   public LeaderServiceImpl(ZooKeeper zk) {
+   public LeaderServiceImpl(ZooKeeper zk, String zkLeaderPath) {
       this.zk = zk;
-   }
-
-   public LeaderServiceImpl(ZooKeeper zk, String leaderZkNodeIdentifier) {
-      this.zk = zk;
-      this.leaderZkNodeIdentifier = leaderZkNodeIdentifier;
+      this.zkLeaderPath = zkLeaderPath;
    }
 
 
@@ -110,16 +102,16 @@ public class LeaderServiceImpl implements LeaderService {
 
 
    private void getLeader() {
-      zk.getData(leaderZkNodeIdentifier, false, getLeaderCallback, null);
+      zk.getData(zkLeaderPath, false, getLeaderCallback, null);
    }
 
 
    private void awaitForLeaderElected() {
-      zk.exists(leaderZkNodeIdentifier, awaitForLeaderElectedWatcher, waitForLeaderElectedCallback, null);
+      zk.exists(zkLeaderPath, awaitForLeaderElectedWatcher, waitForLeaderElectedCallback, null);
    }
 
 
    private void awaitForLeaderFailed() {
-      zk.exists(leaderZkNodeIdentifier, awaitForLeaderFailedWatcher, awaitForLeaderFailedCallback, null);
+      zk.exists(zkLeaderPath, awaitForLeaderFailedWatcher, awaitForLeaderFailedCallback, null);
    }
 }

@@ -1,10 +1,12 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import org.apache.zookeeper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 
 /**
@@ -14,6 +16,8 @@ public class BootstrapServiceImpl implements BootstrapService {
 
    private static final Logger logger = LoggerFactory.getLogger(BootstrapServiceImpl.class);
    private ZooKeeper zk;
+   private final ZkConfig paths;
+
    AsyncCallback.StringCallback createParentCallback = (rc, path, context, name) -> {
       switch (KeeperException.Code.get(rc)) {
          case CONNECTIONLOSS:
@@ -31,28 +35,19 @@ public class BootstrapServiceImpl implements BootstrapService {
    };
 
 
-   public BootstrapServiceImpl(ZooKeeper zk) {
+   public BootstrapServiceImpl(ZooKeeper zk, ZkConfig paths) {
       this.zk = zk;
+      this.paths = paths;
    }
 
 
    public void bootstrap() {
 
-      createParent(ZkNodePaths.Root, new byte[0]);
-      createParent(ZkNodePaths.Nodes, new byte[0]);
-      createParent(ZkNodePaths.Masters, new byte[0]);
-      createParent(ZkNodePaths.Workers, new byte[0]);
-      createParent(ZkNodePaths.Producers, new byte[0]);
-      createParent(ZkNodePaths.Tasks, new byte[0]);
-      createParent(ZkNodePaths.Corr, new byte[0]);
+      List<String> paths = this.paths.getAllPaths();
 
-      createParent(ZkNodePaths.DevMasters, new byte[0]);
-      createParent(ZkNodePaths.DevWorkers, new byte[0]);
-      createParent(ZkNodePaths.DevReaders, new byte[0]);
-      createParent(ZkNodePaths.DevTasks, new byte[0]);
-
-      createParent(ZkNodePaths.TaskAssignments, new byte[0]);
-      createParent(ZkNodePaths.DevTaskAssignments, new byte[0]);
+      for(String p : paths){
+         createParent(p, new byte[0]);
+      }
    }
 
 

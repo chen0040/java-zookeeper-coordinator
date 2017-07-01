@@ -4,7 +4,6 @@ package com.github.chen0040.zkcoordinator.services;
 import com.github.chen0040.data.utils.TupleTwo;
 import com.github.chen0040.zkcoordinator.consts.ActorSystemIdentifiers;
 import com.github.chen0040.zkcoordinator.consts.TaskStates;
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import com.github.chen0040.zkcoordinator.model.*;
 import org.apache.zookeeper.*;
 import org.slf4j.Logger;
@@ -25,11 +24,11 @@ import java.util.function.Consumer;
 public class TaskAssignmentServiceImpl implements TaskAssignmentService {
    private static final Logger logger = LoggerFactory.getLogger(TaskAssignmentServiceImpl.class);
    private static Random rand = new Random();
-   private List<String> workerList = new ArrayList<>();
-   private ZooKeeper zk;
+   private final List<String> workerList = new ArrayList<>();
+   private final ZooKeeper zk;
 
-   private String taskZkNodeIdentifier = ZkNodePaths.Tasks;
-   private String assignmentZkNodeIdentifier = ZkNodePaths.TaskAssignments;
+   private final String zkTaskPath;
+   private final String zkTaskAssignmentPath;
 
    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
@@ -265,15 +264,10 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
       }
    };
 
-
-   public TaskAssignmentServiceImpl(ZooKeeper zk) {
+   public TaskAssignmentServiceImpl(ZooKeeper zk, String zkTaskPath, String zkTaskAssignmentPath){
       this.zk = zk;
-   }
-
-   public TaskAssignmentServiceImpl(ZooKeeper zk, String taskZkNodeIdentifier, String assignmentZkNodeIdentifier){
-      this.zk = zk;
-      this.taskZkNodeIdentifier = taskZkNodeIdentifier;
-      this.assignmentZkNodeIdentifier = assignmentZkNodeIdentifier;
+      this.zkTaskPath = zkTaskPath;
+      this.zkTaskAssignmentPath = zkTaskAssignmentPath;
    }
 
 
@@ -282,7 +276,8 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
       readWriteLock.writeLock().lock();
       try {
-         workerList = new ArrayList<>(children);
+         workerList.clear();
+         workerList.addAll(children);
       } finally {
          readWriteLock.writeLock().unlock();
       }
@@ -315,7 +310,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
    private void unregisterAbsentWorkerInAssignment(String workerId) {
       try {
-         ZKUtil.deleteRecursive(zk, assignmentZkNodeIdentifier + "/" + workerId, unregisterAbsentWorkerInAssignmentCallback, workerId);
+         ZKUtil.deleteRecursive(zk, zkTaskAssignmentPath + "/" + workerId, unregisterAbsentWorkerInAssignmentCallback, workerId);
       }
       catch (InterruptedException | KeeperException e) {
          logger.error("unregisterAbsentWorkerInAssignment failed.", e);
@@ -324,7 +319,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
 
    private void getAbsentWorkerTasks(String workerId) {
-      zk.getChildren(assignmentZkNodeIdentifier + "/" + workerId, false, getAbsentWorkerTasksCallback, workerId);
+      zk.getChildren(zkTaskAssignmentPath + "/" + workerId, false, getAbsentWorkerTasksCallback, workerId);
    }
 
 
@@ -336,7 +331,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
 
    private void createAssignment(String taskId, String designatedWorker, BiConsumer<String, AkkaNodeUri> callback) {
-      final String path1 = assignmentZkNodeIdentifier + "/" + designatedWorker;
+      final String path1 = zkTaskAssignmentPath + "/" + designatedWorker;
 
       createAssignment(path1, taskId, designatedWorker, (ww, ww1) -> {
          final String path2 = path1 + "/" + getPartition(taskId, 0, zkDepth4Tasks);
@@ -364,13 +359,13 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
 
    private void isWorkerRegisteredInAssignment(String workerId, BiConsumer<String, Boolean> callback) {
-      zk.getData(assignmentZkNodeIdentifier + "/" + workerId, false, isWorkerRegisteredInAssignmentCallback, callback);
+      zk.getData(zkTaskAssignmentPath + "/" + workerId, false, isWorkerRegisteredInAssignmentCallback, callback);
    }
 
 
    private void registerNewWorkerInAssignment(String workerId, Consumer<String> callback) {
       byte[] data = new byte[0];
-      zk.create(assignmentZkNodeIdentifier + "/" + workerId, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,
+      zk.create(zkTaskAssignmentPath + "/" + workerId, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,
               registerNewWorkerInAssignmentCallback, callback);
    }
 
@@ -384,7 +379,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
    private String getPath4TaskId(String taskId) {
       StringBuilder sb = new StringBuilder();
-      sb.append(taskZkNodeIdentifier);
+      sb.append(zkTaskPath);
       for (int i = 0; i < zkDepth4Tasks; ++i) {
          sb.append("/" + getPartition(taskId, i, zkDepth4Tasks));
       }
@@ -456,7 +451,7 @@ public class TaskAssignmentServiceImpl implements TaskAssignmentService {
 
 
    @Override public void createTask(String taskId, Consumer<String> callback) {
-      final String path1 = taskZkNodeIdentifier + "/" + getPartition(taskId, 0, zkDepth4Tasks);
+      final String path1 = zkTaskPath + "/" + getPartition(taskId, 0, zkDepth4Tasks);
       createTask(path1, taskId, (ss1) -> {
          final String path2 = path1 + "/" + getPartition(taskId, 1, zkDepth4Tasks);
          createTask(path2, taskId, (ss2) -> {

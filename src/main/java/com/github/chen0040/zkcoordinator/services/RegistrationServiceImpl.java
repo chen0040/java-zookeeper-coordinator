@@ -2,7 +2,6 @@ package com.github.chen0040.zkcoordinator.services;
 
 
 import com.github.chen0040.zkcoordinator.model.UTF8;
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
 import com.github.chen0040.zkcoordinator.utils.ZkTimer;
@@ -32,9 +31,9 @@ public class RegistrationServiceImpl implements RegistrationService {
    private Watcher watcher;
    private int port;
    private String serverId;
-   private String ipAddress;
-   private String groupName;
-   private String zkConnect;
+   private final String ipAddress;
+   private final String groupName;
+   private final String zkConnect;
    private int sessionTimeout;
    private final ZkTimer timer;
    private long reconnectDelayWhenSessionExpired;
@@ -48,6 +47,9 @@ public class RegistrationServiceImpl implements RegistrationService {
    private long lastTimeout = 0L;
 
    private boolean isAlreadyRegisteredOneTime = false;
+
+   private final String zkRootPath;
+   private final String zkNodePath;
 
 
    private List<BiConsumer<ZooKeeper, RegistrationCompleted>> groupJoinListeners = new ArrayList<>();
@@ -69,12 +71,15 @@ public class RegistrationServiceImpl implements RegistrationService {
    };
 
 
-   public RegistrationServiceImpl(Watcher watcher, String zkConnect, String groupName, String ipAddress, long reconnectDelayWhenSessionExpired) {
+   public RegistrationServiceImpl(Watcher watcher, String zkConnect, String zkRootPath, String zkNodePath, String groupName, String ipAddress, long reconnectDelayWhenSessionExpired) {
       this.watcher = watcher;
       this.zkConnect = zkConnect;
 
       this.groupName = groupName;
       this.ipAddress = ipAddress;
+
+      this.zkRootPath = zkRootPath;
+      this.zkNodePath = zkNodePath;
 
       this.reconnectDelayWhenSessionExpired = reconnectDelayWhenSessionExpired;
 
@@ -102,7 +107,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
    private void joinGroup() {
       MDC.put("port", "" + port);
-      zk.create(ZkNodePaths.Root + "/" + groupName + "/" + serverId, UTF8.getBytes("Idle"), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL,
+      zk.create(zkRootPath + "/" + groupName + "/" + serverId, UTF8.getBytes("Idle"), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL,
               callbackJoinGroup, null);
    }
 
@@ -130,7 +135,7 @@ public class RegistrationServiceImpl implements RegistrationService {
          }
       };
 
-      zk.create(ZkNodePaths.Nodes + "/" + serverId, UTF8.getBytes("Idle"), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, callback, null);
+      zk.create(zkNodePath + "/" + serverId, UTF8.getBytes("Idle"), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, callback, null);
    }
 
    @Override

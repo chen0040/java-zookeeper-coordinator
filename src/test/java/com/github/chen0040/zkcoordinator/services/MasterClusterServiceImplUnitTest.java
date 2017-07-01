@@ -1,6 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
 import org.apache.zookeeper.ZooKeeper;
@@ -30,6 +31,8 @@ public class MasterClusterServiceImplUnitTest extends ZooKeeperConfigurationCont
    private RegistrationCompleted registrationCompleted = null;
    private BootstrapService bootstrapService;
 
+   private ZkConfig paths = new ZkConfig();
+
    private static final Logger logger = LoggerFactory.getLogger(MasterClusterServiceImplUnitTest.class);
 
    @BeforeMethod @Override public void setUp() throws Exception {
@@ -40,11 +43,11 @@ public class MasterClusterServiceImplUnitTest extends ZooKeeperConfigurationCont
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, paths.getRootPath(), paths.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 
-         bootstrapService = new BootstrapServiceImpl(zk);
+         bootstrapService = new BootstrapServiceImpl(zk,paths);
          bootstrapService.bootstrap();
       });
       registrationService.onZkClosed(message -> zkClient = null);

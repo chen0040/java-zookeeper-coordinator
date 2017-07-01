@@ -1,7 +1,6 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -22,9 +21,9 @@ import java.util.function.Consumer;
 public class WorkerClusterServiceImpl implements WorkerClusterService {
 
    private static final Logger logger = LoggerFactory.getLogger(WorkerClusterServiceImpl.class);
-   private ZooKeeper zk;
-   private List<Consumer<List<String>>> workerChangeListeners = new ArrayList<>();
-   private String workerZkNodeIdentifier = ZkNodePaths.Workers;
+   private final ZooKeeper zk;
+   private final List<Consumer<List<String>>> workerChangeListeners = new ArrayList<>();
+   private final String zkWorkerPath;
 
    private Set<String> workers = new HashSet<>();
    private AsyncCallback.ChildrenCallback workersGetChildrenCallback = (rc, path, context, children) -> {
@@ -43,19 +42,13 @@ public class WorkerClusterServiceImpl implements WorkerClusterService {
    };
    private Watcher workersChangeWatcher = watchedEvent -> {
       if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
-         assert workerZkNodeIdentifier.equals(watchedEvent.getPath());
          getWorkersAsync();
       }
    };
 
-
-   public WorkerClusterServiceImpl(ZooKeeper zk) {
+   public WorkerClusterServiceImpl(ZooKeeper zk, String zkWorkerPath) {
       this.zk = zk;
-   }
-
-   public WorkerClusterServiceImpl(ZooKeeper zk, String workerZkNodeIdentifier) {
-      this.zk = zk;
-      this.workerZkNodeIdentifier = workerZkNodeIdentifier;
+      this.zkWorkerPath = zkWorkerPath;
    }
 
 
@@ -65,7 +58,7 @@ public class WorkerClusterServiceImpl implements WorkerClusterService {
 
 
    private void getWorkersAsync() {
-      zk.getChildren(workerZkNodeIdentifier, workersChangeWatcher, workersGetChildrenCallback, null);
+      zk.getChildren(zkWorkerPath, workersChangeWatcher, workersGetChildrenCallback, null);
    }
 
 

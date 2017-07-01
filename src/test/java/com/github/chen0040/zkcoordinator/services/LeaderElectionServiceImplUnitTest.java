@@ -1,6 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
 import org.apache.zookeeper.ZooKeeper;
@@ -31,6 +32,8 @@ public class LeaderElectionServiceImplUnitTest extends ZooKeeperConfigurationCon
    private BootstrapService bootstrapService;
    private MasterClusterService masterClusterService;
 
+   private ZkConfig paths = new ZkConfig();
+
    private static final Logger logger = LoggerFactory.getLogger(LeaderElectionServiceImplUnitTest.class);
 
    @BeforeMethod @Override public void setUp() throws Exception {
@@ -41,18 +44,18 @@ public class LeaderElectionServiceImplUnitTest extends ZooKeeperConfigurationCon
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, paths.getRootPath(), paths.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 
-         bootstrapService = new BootstrapServiceImpl(zk);
+         bootstrapService = new BootstrapServiceImpl(zk, paths);
          bootstrapService.bootstrap();
       });
       registrationService.onZkClosed(message -> zkClient = null);
       registrationService.addGroupJoinListener((zk, rc) -> {
          logger.info("group join success");
          registrationCompleted = rc;
-         masterClusterService = new MasterClusterServiceImpl(zk);
+         masterClusterService = new MasterClusterServiceImpl(zk, paths.getMasterPath());
          masterClusterService.watchMasters();
       });
    }

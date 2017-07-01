@@ -1,7 +1,6 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -19,13 +18,13 @@ import java.util.function.Consumer;
 /**
  * Created by xschen on 5/10/16.
  */
-public class ProducerClusterServiceImpl implements ProducerClusterService {
+public class RequestClusterServiceImpl implements RequestClusterService {
 
-   private static final Logger logger = LoggerFactory.getLogger(ProducerClusterServiceImpl.class);
+   private static final Logger logger = LoggerFactory.getLogger(RequestClusterServiceImpl.class);
    private ZooKeeper zk;
    private List<Consumer<List<String>>> producerChangeListeners = new ArrayList<>();
 
-   private String producerZkNodeIdentifier = ZkNodePaths.Producers;
+   private final String zkRequestPath;
 
    private Set<String> producers = new HashSet<>();
    private AsyncCallback.ChildrenCallback producersGetChildrenCallback = (rc, path, context, children) -> {
@@ -44,19 +43,13 @@ public class ProducerClusterServiceImpl implements ProducerClusterService {
    };
    private Watcher producersChangeWatcher = watchedEvent -> {
       if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
-         assert producerZkNodeIdentifier.equals(watchedEvent.getPath());
          getProducersAsync();
       }
    };
 
-
-   public ProducerClusterServiceImpl(ZooKeeper zk) {
+   public RequestClusterServiceImpl(ZooKeeper zk, String zkRequestPath) {
       this.zk = zk;
-   }
-
-   public ProducerClusterServiceImpl(ZooKeeper zk, String producerZkNodeIdentifier) {
-      this.zk = zk;
-      this.producerZkNodeIdentifier = producerZkNodeIdentifier;
+      this.zkRequestPath = zkRequestPath;
    }
 
 
@@ -66,7 +59,7 @@ public class ProducerClusterServiceImpl implements ProducerClusterService {
 
 
    private void getProducersAsync() {
-      zk.getChildren(producerZkNodeIdentifier, producersChangeWatcher, producersGetChildrenCallback, null);
+      zk.getChildren(zkRequestPath, producersChangeWatcher, producersGetChildrenCallback, null);
    }
 
 

@@ -2,7 +2,6 @@ package com.github.chen0040.zkcoordinator.services;
 
 
 import com.github.chen0040.zkcoordinator.consts.ActorSystemIdentifiers;
-import com.github.chen0040.zkcoordinator.consts.ZkNodePaths;
 import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
 import com.github.chen0040.zkcoordinator.utils.ZkUtils;
 import org.apache.zookeeper.AsyncCallback;
@@ -31,11 +30,11 @@ public class MasterClusterServiceImpl implements MasterClusterService {
    private List<Consumer<List<AkkaNodeUri>>> masterAddedListeners = new ArrayList<>();
    private List<Consumer<List<AkkaNodeUri>>> masterChangeListeners = new ArrayList<>();
 
-   private Set<String> masters = new HashSet<>();
-   private List<AkkaNodeUri> masterUris = new ArrayList<>();
+   private final Set<String> masters = new HashSet<>();
+   private final List<AkkaNodeUri> masterUris = new ArrayList<>();
 
    private String masterActorSystemIdentifier = ActorSystemIdentifiers.ACTORSYSTEMNAME_MASTERNODE;
-   private String masterZkNodeIdentifier = ZkNodePaths.Masters;
+   private final String zkMasterPath;
 
 
    private AsyncCallback.ChildrenCallback mastersGetChildrenCallback = (rc, path, context, children) -> {
@@ -54,19 +53,14 @@ public class MasterClusterServiceImpl implements MasterClusterService {
    };
    private Watcher mastersChangeWatcher = watchedEvent -> {
       if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
-         assert masterZkNodeIdentifier.equals(watchedEvent.getPath());
          getMastersAsync();
       }
    };
 
 
-   public MasterClusterServiceImpl(ZooKeeper zk) {
+   public MasterClusterServiceImpl(ZooKeeper zk, String zkMasterPath) {
       this.zk = zk;
-   }
-
-   public MasterClusterServiceImpl(ZooKeeper zk, String masterZkNodeIdentifier) {
-      this.zk = zk;
-      this.masterZkNodeIdentifier = masterZkNodeIdentifier;
+      this.zkMasterPath = zkMasterPath;
    }
 
 
@@ -76,7 +70,7 @@ public class MasterClusterServiceImpl implements MasterClusterService {
 
 
    private void getMastersAsync() {
-      zk.getChildren(masterZkNodeIdentifier, mastersChangeWatcher, mastersGetChildrenCallback, null);
+      zk.getChildren(zkMasterPath, mastersChangeWatcher, mastersGetChildrenCallback, null);
    }
 
 
@@ -86,13 +80,16 @@ public class MasterClusterServiceImpl implements MasterClusterService {
 
 
    private void notifyMasterChanged(List<String> children) {
-      masters = new HashSet<>(children);
+      masters.clear();
+      masters.addAll(children);
 
       Set<AkkaNodeUri> oldMasterUris = new HashSet<>(masterUris);
 
       List<String> temp = new ArrayList<>(children);
       temp.sort(String::compareTo);
-      masterUris = temp.stream().map(master -> ZkUtils.toAkkaNodeUri(master, masterActorSystemIdentifier)).collect(Collectors.toList());
+
+      masterUris.clear();
+      masterUris.addAll(temp.stream().map(master -> ZkUtils.toAkkaNodeUri(master, masterActorSystemIdentifier)).collect(Collectors.toList()));
 
       masterChangeListeners.forEach(listener -> listener.accept(masterUris));
 

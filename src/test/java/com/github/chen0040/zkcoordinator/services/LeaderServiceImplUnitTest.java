@@ -1,6 +1,7 @@
 package com.github.chen0040.zkcoordinator.services;
 
 
+import com.github.chen0040.zkcoordinator.model.ZkConfig;
 import com.github.chen0040.zkcoordinator.utils.IpTools;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
 import org.apache.zookeeper.ZooKeeper;
@@ -34,6 +35,8 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
    private String leaderServerId;
    private int leaderPort;
 
+   private ZkConfig paths = new ZkConfig();
+
    private static final Logger logger = LoggerFactory.getLogger(LeaderServiceImplUnitTest.class);
 
    @BeforeMethod @Override public void setUp() throws Exception {
@@ -44,11 +47,11 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
       zkConnect = IpTools.getIpAddress() + ":" + zkPort;
       groupName = "masters";
 
-      registrationService = new RegistrationServiceImpl(this, zkConnect, groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
+      registrationService = new RegistrationServiceImpl(this, zkConnect, paths.getRootPath(), paths.getNodePath(), groupName, IpTools.getIpAddress(), reconnectDelayWhenSessionExpired);
       registrationService.onZkStarted(zk -> {
          zkClient = zk;
 
-         bootstrapService = new BootstrapServiceImpl(zk);
+         bootstrapService = new BootstrapServiceImpl(zk, paths);
          bootstrapService.bootstrap();
 
 
@@ -58,10 +61,10 @@ public class LeaderServiceImplUnitTest extends ZooKeeperConfigurationContext {
          logger.info("group join success");
          registrationCompleted = rc;
 
-         leaderService = new LeaderServiceImpl(zk);
+         leaderService = new LeaderServiceImpl(zk, paths.getLeaderPath());
          leaderService.watchLeader();
 
-         leaderElectionService = new LeaderElectionServiceImpl(zk, rc.getServerId(), rc.getPort());
+         leaderElectionService = new LeaderElectionServiceImpl(zk, rc.getServerId(), rc.getPort(), paths.getLeaderPath());
          leaderElectionService.addLeadershipListener((serverId, port) -> {
             logger.info("Take leadership");
             leaderPort = port;
