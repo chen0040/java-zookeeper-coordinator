@@ -89,6 +89,11 @@ public class MasterNode implements Watcher, MasterActor, ZookeeperActor {
       }
    }
 
+   public boolean isSelf(NodeUri nodeUri) {
+      return masterId.equals(nodeUri.nodeId());
+   }
+
+
    protected void onZkGroupJoined(ZooKeeper zk, RegistrationCompleted rc){
       String serverId = rc.getServerId();
       int port = rc.getPort();

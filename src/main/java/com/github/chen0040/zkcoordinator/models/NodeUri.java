@@ -1,7 +1,12 @@
 package com.github.chen0040.zkcoordinator.models;
 
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -16,6 +21,10 @@ public class NodeUri implements Serializable {
    private int port;
    private String message;
 
+   @Getter
+   @Setter
+   private Map<String, String> properties = new HashMap<>();
+
 
    public NodeUri() {
       host = "localhost";
@@ -24,7 +33,9 @@ public class NodeUri implements Serializable {
       message = "";
    }
 
-
+   public String nodeId(){
+      return host + "-" + protocol;
+   }
 
 
    public String getHost() {

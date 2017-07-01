@@ -212,4 +212,8 @@ public class WorkerNode implements Watcher, AutoCloseable, SystemActor, Zookeepe
       }
       return masterClusterService.masters();
    }
+
+   public boolean isSelf(NodeUri nodeUri) {
+      return workerId.equals(nodeUri.nodeId());
+   }
 }

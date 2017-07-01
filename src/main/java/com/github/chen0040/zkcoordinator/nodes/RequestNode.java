@@ -171,4 +171,8 @@ public class RequestNode implements Watcher, SystemActor, ZookeeperActor {
    public List<NodeUri> getMasters() {
       return masterClusterService.masters();
    }
+
+   public boolean isSelf(NodeUri nodeUri) {
+      return requestId.equals(nodeUri.nodeId());
+   }
 }
