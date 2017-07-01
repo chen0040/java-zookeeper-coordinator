@@ -6,7 +6,16 @@ A java library that makes easy to develop distributed-tasking application with f
 
 ### Create and run a master node
 
-Firstly defines a class that inherits from MasterController:
+Firstly defines a class that inherits from MasterNode:
+
+```java
+
+```
+
+
+### Create and run a master node
+
+Firstly defines a class that inherits from WorkerNode:
 
 ```java
 

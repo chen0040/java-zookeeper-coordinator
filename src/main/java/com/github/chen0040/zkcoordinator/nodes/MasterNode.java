@@ -1,4 +1,4 @@
-package com.github.chen0040.zkcoordinator.controllers;
+package com.github.chen0040.zkcoordinator.nodes;
 
 import com.github.chen0040.zkcoordinator.model.AkkaNodeUri;
 import com.github.chen0040.zkcoordinator.model.RegistrationCompleted;
@@ -18,9 +18,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 
-public class MasterController implements Watcher, Master {
+public class MasterNode implements Watcher, Master {
 
-   private static final Logger logger = LoggerFactory.getLogger(MasterController.class);
+   private static final Logger logger = LoggerFactory.getLogger(MasterNode.class);
 
    private TaskAssignmentService taskAssignmentService;
    private WorkerClusterService workerClusterService;
@@ -52,28 +52,16 @@ public class MasterController implements Watcher, Master {
    private final int initialPort;
 
    @Getter
-   private ZkConfig zkConfig = new ZkConfig();
+   private final ZkConfig zkConfig = new ZkConfig();
 
 
-   public MasterController(String zkConnect, String groupName, int initialPort) {
+   public MasterNode(String zkConnect, String groupName, int initialPort) {
       this.zkConnect = zkConnect;
       this.groupName = groupName;
       this.ipAddress = IpTools.getIpAddress();
       this.initialPort = initialPort;
    }
 
-
-   @Override public void takeLeadership(String ipAddress, int port, String masterId) {
-      logger.info("This instance (id = {}) has become leader at {}:{}", masterId, ipAddress, port);
-   }
-
-   @Override public void resignLeadership(String ipAddress, int port, String masterId) {
-      logger.info("This instance (id = {}) has resigned from leadership at {}:{}", masterId, ipAddress, port);
-   }
-
-   @Override public void stopSystem() {
-      logger.info("system shutdown");
-   }
 
    protected void onZkReconected(String state) {
       logger.info("zookeeper reconnected");
@@ -167,9 +155,20 @@ public class MasterController implements Watcher, Master {
       return new RequestClusterServiceImpl(zk, zkConfig.getRequestPath());
    }
 
+   @Override public void takeLeadership(String ipAddress, int port, String masterId) {
+      logger.info("This instance (id = {}) has become leader at {}:{}", masterId, ipAddress, port);
+   }
+
+   @Override public void resignLeadership(String ipAddress, int port, String masterId) {
+      logger.info("This instance (id = {}) has resigned from leadership at {}:{}", masterId, ipAddress, port);
+   }
 
    @Override public void startSystem(String ipAddress, int port, String masterId){
       logger.info("start system at {}:{} with id = {}", ipAddress, port, masterId);
+   }
+
+   @Override public void stopSystem() {
+      logger.info("system shutdown");
    }
 
    public void shutdown() throws InterruptedException {
@@ -177,6 +176,8 @@ public class MasterController implements Watcher, Master {
       running = false;
       stopSystem();
    }
+
+
 
    @Override public void process(WatchedEvent watchedEvent) {
 
