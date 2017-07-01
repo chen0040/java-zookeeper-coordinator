@@ -25,7 +25,7 @@ Each type of nodes have a life cycle in which the following API method can be ex
 
 ### Create and run a master node
 
-Firstly defines a class that inherits from MasterNode:
+Firstly defines a main class MasterApplication that inherits from MasterNode:
 
 ```java
 public class MasterApplication extends MasterNode {
@@ -54,14 +54,34 @@ public class MasterApplication extends MasterNode {
 
    public static void main(String[] args) throws IOException, InterruptedException {
       ZkConfig config = new ZkConfig();
-      config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      // zookeeper connection string
+      String zkConnectionString = "192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181"; 
+      config.setZkConnect(zkConnectionString);
       final MasterApplication application = new MasterApplication(config);
       application.addShutdownHook();
       application.runForever();
    }
-
 }
 ```
+The MasterApplication.main(...) is the main entry point for the master node java program. 
+
+The 4 APIs that user can overwrite during the lifecycle of the master node are explained below:
+
+* The MasterApplication.startSystem() will be invoked when the master node managed to connect to the zookeeper
+* The MasterApplication.resignLeadership() will be invoked when the master node starts to compete for the leadership,
+which occurs either when the master node has just connected to the zookeeper or disconnected (e.g. due to networking 
+problem or some other issues) and then reconnected again.
+* The MasterApplication.takeLeadership() will be invoked when the master node is notified that it is currently the
+active leader. 
+* The MasterApplication.stopSystem() will be invoked when the application.shutdown() is called (Note that shutdown() is
+call at the end in the above code due to application.addShutdownHook())
+
+Inside the MasterApplication.runForever(), the method MasterApplication.start() is called first to start
+ communication with zookeeper, the application is then entered into a forever while loop. 
+ 
+In the case the MasterApplication needs to be incorporated with another framework (e.g. Spring framework) which
+has its own forever loop, then calls MasterApplication.start() instead of MasterApplication.runForever.
+
 
 
 ### Create and run a worker node
@@ -69,8 +89,48 @@ public class MasterApplication extends MasterNode {
 Firstly defines a class that inherits from WorkerNode:
 
 ```java
+public class WorkerApplication extends WorkerNode {
 
+   private static final Logger logger = LoggerFactory.getLogger(WorkerApplication.class);
+
+   public WorkerApplication(ZkConfig zkConfig) {
+      super(zkConfig);
+   }
+
+
+   @Override public void startSystem(String ipAddress, int port, String masterId){
+      logger.info("start system at {}:{} with id = {}", ipAddress, port, masterId);
+   }
+
+   @Override public void stopSystem() {
+      logger.info("system shutdown");
+   }
+
+   public static void main(String[] args) throws IOException, InterruptedException {
+      ZkConfig config = new ZkConfig();
+      config.setZkConnect("192.168.10.12:2181,192.168.10.13:2181,192.168.10.14:2181");
+      final WorkerApplication application = new WorkerApplication(config);
+      application.addShutdownHook();
+      application.runForever();
+   }
+
+}
 ```
+
+The WorkerApplication.main(...) is the main entry point for the worker node java program. 
+
+The 2 APIs that user can overwrite during the lifecycle of the worker node are explained below:
+
+* The WorkerApplication.startSystem() will be invoked when the worker node managed to connect to the zookeeper
+* The WorkerApplication.stopSystem() will be invoked when the application.shutdown() is called (Note that shutdown() is
+call at the end in the above code due to application.addShutdownHook())
+
+Inside the WorkerApplication.runForever(), the method WorkerApplication.start() is called first to start
+ communication with zookeeper, the application is then entered into a forever while loop. 
+ 
+In the case the WorkerApplication needs to be incorporated with another framework (e.g. Spring framework) which
+has its own forever loop, then calls WorkerApplication.start() instead of WorkerApplication.runForever.
+
 
 
 ### Create and run a request node
