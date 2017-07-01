@@ -2,7 +2,20 @@
 
 A java library that makes easy to develop distributed-tasking system with fail-safe and load balancing master-slave cluster via zookeeper
 
-Features
+
+# Install
+
+Add the following dependency to your POM file:
+
+```xml
+<dependency>
+  <groupId>com.github.chen0040</groupId>
+  <artifactId>java-zookeeper-coordinator</artifactId>
+  <version>1.0.1</version>
+</dependency>
+```
+
+# Features
 
 Compared to Curator, java-zookeeper-coordinator is very light-weight, also it has many features built for
 building request-master-slave cluster architecture. It is also designed to handle CRUD on 
